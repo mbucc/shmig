@@ -326,7 +326,7 @@ sed_quote(){
   echo "$1" | sed -e 's/[]*\&\/.^$[]/\\&/g'
 }
 
-# retrieves section withing "$since" - "$till"
+# retrieves section within "$since" - "$till"
 # markers. returns false if section is empty or missing
 migration_section(){
   local fname="$1"
