@@ -1,0 +1,685 @@
+#!/bin/bash
+
+# SHMIG. Database migration tool in BASH.
+# Copyright 2013 naquad <naquad@gmail.com>
+
+# default values for variables
+
+ME="`basename "$0"`"
+CONFIG="./shmig.conf"
+SCHEMA_TABLE="shmig_version"
+CONFIG_EXPLICITLY_SET="0"
+ASK_PASSWORD="0"
+MIGRATIONS="./migrations"
+
+MYSQL="/usr/bin/mysql"
+PSQL="/usr/bin/psql"
+SQLITE3="/usr/bin/sqlite3"
+
+UP_MARK="====  UP  ===="
+DOWN_MARK="==== DOWN ===="
+
+VERSION="Version 0.1A by naquad"
+
+COLOR="auto"
+
+# until parsing options and figuring out color policy
+# we assume color output is not used
+
+RED=""
+GREEN=""
+YELLOW=""
+BLUE=""
+MAGENTA=""
+CYAN=""
+LGRAY=""
+DGRAY=""
+LRED=""
+LGREEN=""
+LYELLOW=""
+LBLUE=""
+LMAGENTA=""
+LCYAN=""
+LWHITE=""
+CLEAR=""
+BOLD=""
+
+# some helpers
+warn(){
+  echo -e "$ME: $@" >&2
+}
+
+die(){
+  [ "$#" -gt 0 ] && warn "$@"
+  exit 1
+}
+
+version(){
+  echo "$VERSION"
+  exit
+}
+
+usage(){
+  local output="1"
+
+  [ "$1" -ne 0 ] && output="2"
+
+  cat >&"$output" <<EOF
+Usage: $ME [options] <action> [arguments...]
+Where options are:
+  -h --help
+      show this message
+
+  -c --config FILE
+      read configuration file from (default is $CONFIG)
+
+  -t --type TYPE
+      database type (supported are mysql, postgresql, sqlite3)
+
+  -m --migrations DIR
+      files with migrations (default is $MIGRATIONS)
+
+  -d --database DATABASE
+      database name
+
+  -l --login LOGIN
+      set database user name to connect as (not used for sqlite3)
+
+  -H --host LOGIN
+      set database host to connect to (not used for sqlite3)
+
+  -p --password PASSWORD
+      password to be used when connecting (not used for sqlite3)
+
+  -P --port PORT
+      set database port to connect to (not used for sqlite3)
+
+  -s --schema-table TABLE
+      name of schema table (default is $SCHEMA_TABLE)
+
+  -a --args ARGS
+      additional arguments for database client passed as is
+
+  -A --ask-password
+      ask for password
+
+  -C --color COLOR
+      set color policy. possible options:
+          auto - default. will use colors if possible
+          never - do not use colors
+          always - always use colors
+      default is $COLOR
+
+  -V --version
+      shows version information
+
+Actions are:
+  create <name>
+      create migration file in MIGRATIONS directory
+
+  migrate|up [steps=COUNT] [[till=]TILL]
+      apply pending COUNT or till (and including) TILL migrations or all
+      unless TILL or COUNT given
+
+  down [steps=COUNT] [[till=]TILL]
+      rollback migrations till (and including) given version or
+      COUNT migrations (if given)
+
+  rollback [COUNT]
+      revert COUNT last migrations
+
+  redo [steps=COUNT] [[till]=TILL]
+      rolls back COUNT or TILL (and including) migration or all if not given
+      and then applies them again
+
+  pending
+      show migrations that are not applied
+
+$VERSION
+EOF
+
+  exit "$1"
+}
+
+### DB-specific functions. Sort of abstraction layer
+
+### Generic implementations
+
+__generic_checker(){
+  local exe="$1"
+  local show="$2"
+  local create="$3"
+
+  [ -x "$exe" ] || die "${BOLD}${LYELLOW}`basename "$exe"`${CLEAR} ($exe) is ${RED}not available${CLEAR}"
+
+  "${TYPE}_cli" "$show" | grep -F -qx "$SCHEMA_TABLE"
+
+  local status=("${PIPESTATUS[@]}")
+
+  [ "${status[0]}" -ne 0 ] && return 1
+
+  if [ "${status[1]}" -ne 0 ]
+  then
+    warn "${LBLUE}creating migrations table: ${LGREEN}$SCHEMA_TABLE${CLEAR}"
+    "${TYPE}_cli" "$create"
+  else
+    true
+  fi
+
+  return "$?"
+}
+
+__generic_previous_versions(){
+  local sql="select version from $1$SCHEMA_TABLE$1 order by version desc"
+  [ -n "$2" ] && sql="$sql limit $2"
+  "${TYPE}_cli" "$sql;" || exit 1
+}
+
+__generic_bump_version_sql(){
+  echo "insert into $1$SCHEMA_TABLE$1(version) values($2);"
+}
+
+__generic_drop_version_sql(){
+  echo "delete from $1$SCHEMA_TABLE$1 where version = $2;"
+}
+
+### Generic implementations end
+
+##### MySQL
+mysql_cli(){
+  local args="-N -A -B $ARGS $DATABASE"
+
+  [ -n "$LOGIN"    ] && args="-u $LOGIN    $args"
+  [ -n "$HOST"     ] && args="-h $HOST     $args"
+  [ -n "$PORT"     ] && args="-P $PORT     $args"
+  [ -n "$PASSWORD" ] && export MYSQL_PWD="$PASSWORD"
+
+  if [ "$#" -ne 0 ]
+  then
+    "$MYSQL" $args <<< $*
+  else
+    "$MYSQL" $args
+  fi
+}
+
+mysql_check(){
+  __generic_checker "$MYSQL" "show tables;" \
+    "create table \`$SCHEMA_TABLE\`(version int not null primary key);"
+}
+
+mysql_previous_versions(){
+  __generic_previous_versions '`' "$1"
+}
+
+mysql_bump_version_sql(){
+  __generic_bump_version_sql '`' "$1"
+}
+
+mysql_drop_version_sql(){
+  __generic_drop_version_sql '`' "$1"
+}
+
+##### MySQL end
+
+##### PostgreSQL
+
+postgresql_cli(){
+  export PGOPTIONS="-c client_min_messages=WARNING"
+  local args="-q -X -v VERBOSITY=terse -v ON_ERROR_STOP=1 -A -t -w -d $DATABASE $ARGS"
+
+  [ -n "$LOGIN"    ] && args="-U $LOGIN    $args"
+  [ -n "$HOST"     ] && args="-h $HOST     $args"
+  [ -n "$PORT"     ] && args="-p $PORT     $args"
+  [ -n "$PASSWORD" ] && export PGPASSWORD="$PASSWORD"
+
+  if [ "$#" -ne 0 ]
+  then
+    "$PSQL" $args -c "$*"
+  else
+    "$PSQL" $args
+  fi
+}
+
+postgresql_check(){
+  __generic_checker "$PSQL" \
+    "select table_name from information_schema.tables where table_schema = 'public';" \
+    "create table \"$SCHEMA_TABLE\"(version int not null primary key);"
+}
+
+postgresql_previous_versions(){
+  __generic_previous_versions '"' "$1"
+}
+
+postgresql_bump_version_sql(){
+  __generic_bump_version_sql '"' "$1"
+}
+
+postgresql_drop_version_sql(){
+  __generic_drop_version_sql '"' "$1"
+}
+
+##### PostgreSQL end
+
+##### SQLite3
+
+sqlite3_cli(){
+  local args="-bail -batch $ARGS $DATABASE"
+
+  if [ "$#" -ne 0 ]
+  then
+    "$SQLITE3" $args <<< $*
+  else
+    "$SQLITE3" $args
+  fi
+}
+
+sqlite3_check(){
+  __generic_checker "$SQLITE3" \
+    "select name from sqlite_master where type = 'table';" \
+    "create table \`$SCHEMA_TABLE\`(version int not null primary key);"
+}
+
+sqlite3_previous_versions(){
+  __generic_previous_versions '`' "$1"
+}
+
+sqlite3_bump_version_sql(){
+  __generic_bump_version_sql '`' "$1"
+}
+
+sqlite3_drop_version_sql(){
+  __generic_drop_version_sql '`' "$1"
+}
+
+##### SQLite3 end
+
+### DB-specific functions end
+
+# a wrapper for find that looks for migration files
+find_migrations(){
+  find "$MIGRATIONS" -maxdepth 1 -mindepth 1 -type f "$@"
+}
+
+# extract version from migration file name
+migration_version(){
+  echo "$1" | sed -e 's#.*[/\\]\|-.*##g'
+}
+
+# get migration name or title.
+# gets -- Migration: line from file or uses file name
+migration_name(){
+  awk '
+    /^-- Migration:/{
+      sub("^-- Migration: *", "");
+      name = $0;
+      exit;
+    }
+    
+    END{
+      print name ? name : FILENAME;
+    }
+  ' "$1"
+}
+
+# quote string for use in sed expression
+sed_quote(){
+  echo "$1" | sed -e 's/[]*\&\/.^$[]/\\&/g'
+}
+
+# retrieves section withing "$since" - "$till"
+# markers. returns false if section is empty or missing
+migration_section(){
+  local fname="$1"
+  local since="^-- `sed_quote "$2"`\$"
+  local till="^-- `sed_quote "$3"`\$"
+  local tmpfile="${TMPDIR:-/tmp}/shmig-migration-section.$$.${RANDOM}.sql"
+  local result="0"
+
+  sed -n -e '/'"$since"'/,/'"$till"'/{/'"$till"'\|'"$since"'/d;p}' "$fname" > "$tmpfile"
+
+  if grep -E -m1 -q '[^ \t]' "$tmpfile"
+  then
+    cat "$tmpfile"
+  else
+    result="1"
+  fi
+
+  rm -f "$tmpfile"
+  return "$result"
+}
+
+# generate migration
+create(){
+  [ "$#" -eq 1 ] || die "${LRED}create takes exactly one argument${CLEAR}: $ME create <name>"
+  local name="$1"
+
+  echo "$name" | grep -E -qi '^[a-z0-9_. -]+$' || die "${LRED}invalid migration name:${CLEAR} $name"
+
+  find_migrations -printf "%P\n" | sed -n 's/^[0-9]*-\|\.sql$//g;T;p' | \
+    grep -F -qx -- "$name" && die "${LRED}migration '${LYELLOW}$name${LRED}' already exists${CLEAR}"
+
+  local fname="$MIGRATIONS/`date +%s`-`echo "$name" | tr \  _`.sql"
+
+  cat > "$fname" << EOF
+-- Migration: $name
+-- Created at: `date +"%Y-%m-%d %H:%M:%S"`
+-- $UP_MARK
+
+-- $DOWN_MARK
+
+EOF
+  local retval="$?"
+
+  [ "$retval" -eq 0 ] && echo -e "generated ${BOLD}${LGREEN}$fname${CLEAR}"
+
+  return "$retval"
+}
+
+# prints N pending migrations sorted by version in ascending order
+# if N is not given then all printed
+pending_migrations(){
+  local last="`${TYPE}_previous_versions 1`"
+  last="${last:-0}"
+
+  find_migrations | sort -t- -k1nr | awk -v"limit=${1:--1}" -v"last=$last" -F/ \
+    'limit&&$NF~/^[0-9]+-.*\.sql$/&&int($NF)>last{
+      print;
+      --limit;
+      if(!limit)
+        exit;
+    }'
+}
+
+# prints N previous migration file names.
+# if N is not given then all printed
+# in case if record from $SCHEMA_TABLE has no corresponding file
+# thats an error
+previous_migrations(){
+  local version=""
+
+  while read version
+  do
+    local migration="`find_migrations -name "$version-*.sql"`"
+    [ -z "$migration" ] && die "${LRED}migration version ${LYELLOW}$version ${LRED}can't be found${CLEAR}"
+    echo "$migration"
+  done < <("${TYPE}_previous_versions" "$1")
+
+  [ "$?" -ne 0 ] && exit 1
+}
+
+# a wrapper for pending_migrations to display list of pending migrations
+pending(){
+  [ "$#" -ne 0 ] && die "${LRED}pending takes no arguments${CLEAR}"
+  local fname=""
+  pending_migrations | while read fname
+  do
+    basename "$fname"
+  done
+}
+
+# checks if given argument is numeric or empty
+is_numeric(){
+  echo "$1" | grep -E -qi '^[0-9]*$'
+}
+
+# main function processing migrations.
+migrate(){
+  local me="$1" # title of this action
+  local dir="$2" # a way to compare version with until argument. -ge / -le
+  local message="$3" # message to display when processing migration: applying for up or reverting for down
+  local since="$4" # applied section markers and name
+  local till="$5"
+  local sname="$6"
+  local src="$7" # source function. should accept number of migrations to display and print their file names
+  local version_change_sql="$8" # command that who gets version and should print sql to execute (used to add/remove version in $SCHEMA_TABLE)
+  shift 8
+
+  local steps=""
+  local stopver=""
+
+  while [ "$#" -ne 0 ] # parse user given options if any
+  do
+    case "$1" in
+      steps=*)
+        steps="${1#*=}"
+        ;;
+      till=*)
+        stopver="${1#*=}"
+        ;;
+      *=*)
+        die "${LRED}unknown option:${CLEAR} ${LYELLOW}$1${LYELLOW}"
+        ;;
+      *)
+        if [ -z "$stopver" ]
+        then
+          stopver="$1"
+        else
+          die "${LRED}unexpected argument '${LYELLOW}$1${LRED}' for ${LGREEN}$me${LRED}. usage:${CLEAR} $ME $me [steps=STEPS] [[till=][TILL]"
+        fi
+    esac
+    shift
+  done
+
+  is_numeric "$steps" || die "${LYELLOW}STEPS${LRED} should be numeric${CLEAR}"
+  is_numeric "$stopver" || die "${LYELLOW}TILL${LRED} should be numeric${CLEAR}"
+
+  local fname=""
+  while read fname
+  do
+    local version="`migration_version "$fname"`"
+    local name="`migration_name "$fname"`"
+
+    # if until is given and we're hitting it then break
+    [ -n "$stopver" ] && [ "$version" "$dir" "$stopver" ] && break
+
+    # pipe section from migration and version change SQL into CLI client of specified type
+    (
+      echo -en "$ME: $message '${LMAGENTA}${name}${CLEAR}'\t(${LBLUE}$version${LBLUE}${CLEAR})... " >&2
+
+      migration_section "$fname" "$since" "$till" || die "\n  ${LRED}migration in '${LYELLOW}$fname${LRED}' contains no section ${CYAN}$sname${CLEAR}"
+      "$version_change_sql" "$version"
+
+      echo -e "${BOLD}${LGREEN}done${CLEAR}" >&2
+    ) | "${TYPE}_cli"
+
+    [ "${PIPESTATUS[0]}" -eq 0 -a "${PIPESTATUS[1]}" -eq 0 ] || exit 1
+  done < <("$src" $steps)
+}
+
+# a wrapper for migrate that applies migrations
+up(){
+  migrate "up" "-gt" "${LCYAN}applying ${CLEAR}" "$UP_MARK" "$DOWN_MARK" "UP" \
+    "pending_migrations" "${TYPE}_bump_version_sql" "$@"
+}
+
+# a wrapper for migrate that reverts migrations
+down(){
+  migrate "down" "-lt" "${LGREEN}reverting${CLEAR}" "$DOWN_MARK" "$UP_MARK" "DOWN" \
+    "previous_migrations" "${TYPE}_drop_version_sql" "$@"
+}
+
+# parse command line and store variables in _VAR to overwrite config values
+# later
+
+PARSED_ARGUMENTS="`getopt -s bash -o hc:t:m:d:l:H:p:P:s:a:AVC: --long help,config:,type:,migrations:,database:,login:,host:,password:,port:,schema-table:,args:,ask-password,version,color: -n "$ME" -- "$@"`"
+[ "$?" -ne 0 ] && usage 1
+
+eval set -- "$PARSED_ARGUMENTS"
+
+while true; do
+  case "$1" in
+    -h|--help)
+      usage 0
+      ;;
+    -c|--config) 
+      CONFIG_EXPLICITLY_SET="1"
+      CONFIG="$2"
+      shift;
+      ;;
+    -t|--type)
+      _TYPE="$2"
+      shift
+      ;;
+    -m|--migrations)
+      _MIGRATIONS="$2"
+      shift
+      ;;
+    -d|--database)
+      _DATABASE="$2"
+      shift
+      ;;
+    -l|--login)
+      _LOGIN="$2"
+      shift
+      ;;
+    -H|--host)
+      _HOST="$2"
+      shift
+      ;;
+    -p|--password)
+      _PASSWORD="$2"
+      shift
+      ;;
+    -P|--port)
+      _PORT="$2"
+      shift
+      ;;
+    -s|--schema-table)
+      _SCHEMA_TABLE="$2"
+      shift
+      ;;
+    -a|--args)
+      _ARGS="$2"
+      shift
+      ;;
+    -V|--version)
+      version
+      ;;
+    -A|--ask-password)
+      ASK_PASSWORD="1"
+      ;;
+    -C|--colors)
+      _COLOR="$2"
+      shift
+      ;;
+    --)
+      shift
+      break
+      ;;
+    *)
+      die "internal error"
+      ;;
+  esac
+  shift
+done
+
+# if config exists
+if [ -e "$CONFIG" ]
+then
+  # any error in configuration file should cause failure
+  # to avoid potential database corruption
+  trap 'die "Configuration failed"' ERR
+  source "$CONFIG"
+  # reset handler
+  trap - ERR
+elif [ "$CONFIG_EXPLICITLY_SET" -eq 1 ]
+then
+  # if user explicitly requested config to be parsed and it is missing
+  # we should bail out with error
+  die "Configuration file '$CONFIG' doesn't exist"
+fi
+
+[ "$ASK_PASSWORD" -eq 1 ] && read -s -p "Password: " _PASSWORD
+
+# options from command line have higher priority than configuration
+# file. if they were given then we overwrite values
+[ -n "$_TYPE"         ]  && TYPE="$_TYPE"
+[ -n "$_MIGRATIONS"   ]  && MIGRATIONS="$_MIGRATIONS"
+[ -n "$_DATABASE"     ]  && DATABASE="$_DATABASE"
+[ -n "$_LOGIN"        ]  && LOGIN="$_LOGIN"
+[ -n "$_HOST"         ]  && HOST="$_HOST"
+[ -n "$_PASSWORD"     ]  && PASSWORD="$_PASSWORD"
+[ -n "$_PORT"         ]  && PORT="$_PORT"
+[ -n "$_SCHEMA_TABLE" ]  && SCHEMA_TABLE="$_SCHEMA_TABLE"
+[ -n "$_ARGS"         ]  && ARGS="$_ARGS"
+[ -n "$_COLOR"        ]  && COLOR="$_COLOR"
+
+# figure out color policy
+case "$COLOR" in
+  always)
+    COLOR="0"
+    ;;
+  never)
+    COLOR="1"
+    ;;
+  auto)
+    tty &>/dev/null
+    COLOR="$?"
+    ;;
+  *)
+    die "color should be of 'auto', 'never', 'always', got '$COLOR'"
+    ;;
+esac
+
+# if colors enabled then assign color codes to appropriate variables
+if [ "$COLOR" -eq 0 ]
+then
+  RED="\e[31m"
+  GREEN="\e[32m"
+  YELLOW="\e[33m"
+  BLUE="\e[34m"
+  MAGENTA="\e[35m"
+  CYAN="\e[36m"
+  LGRAY="\e[37m"
+  DGRAY="\e[90m"
+  LRED="\e[91m"
+  LGREEN="\e[92m"
+  LYELLOW="\e[93m"
+  LBLUE="\e[94m"
+  LMAGENTA="\e[95m"
+  LCYAN="\e[96m"
+  LWHITE="\e[97m"
+  BOLD="\e[1m"
+  CLEAR="\e[0m"
+fi
+
+# required arguments and sanity checks
+[ -z "$TYPE"       ] && die "${BOLD}${LYELLOW}database type${CLEAR} ${RED}required${CLEAR}"
+[ -z "$DATABASE"   ] && die "${BOLD}${LYELLOW}database name${CLEAR} ${RED}required${CLEAR}"
+[ -d "$MIGRATIONS" ] || die "${BOLD}${LYELLOW}migrations directory${CLEAR} ${RED}is not a directory${CLEAR}"
+
+[ "$#" -eq 0 ] && die "${BOLD}${LYELLOW}action{$CLEAR} ${RED}required${CLEAR}"
+ACTION="$1"
+shift
+
+# database types list is not hard-coded. we just check that TYPE_check function exists
+[ "`type -t "${TYPE}_check"`" != "function" ] && die "${LRED}unknown database type:${CLEAR} $TYPE"
+
+# if database-specifc checker fails then bail out
+"${TYPE}_check" || exit 1
+
+case "$ACTION" in
+  create)
+    create "$@"
+    ;;
+  migrate|up)
+    up "$@"
+    ;;
+  down)
+    down "$@"
+    ;;
+  rollback) # rollback is just a handy down wrapper
+    [ "$#" -gt 1 ] && die "${LRED}rollback takes only one optional argument - COUNT${CLEAR}"
+    down steps="${1:-1}"
+    ;;
+  redo)
+    CURRENT_VERSION="`${TYPE}_previous_versions 1`"
+    down "$@" && up "$CURRENT_VERSION"
+    ;;
+  pending)
+    pending "$@"
+    ;;
+  *)
+    die "${LRED}unknown action:${CLEAR} $ACTION"
+    ;;
+esac

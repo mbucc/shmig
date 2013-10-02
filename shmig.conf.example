@@ -1,0 +1,44 @@
+## SHMIG configuration file.
+# Following variables are available:
+#
+# ASK_PASSWORD=[0|1] - prompt user for password
+# MIGRATIONS="/path/to/migrations" - path to directory with migrations
+#
+# MYSQL="/path/to/mysql" - path to MySQL CLI client
+# PSQL="/path/to/psql" - path to PostgreSQL CLI client
+# SQLITE3="/path/to/sqlite3" - path to SQLite3 CLI client
+#
+# UP_MARK="STRING" - a string indicating begininning of
+#                    UP section (executed on up/migrate)
+# DOWN_MARK="STRING" - a string indicating begininning of
+#                      DOWN section (executed on down/rollback)
+# 
+# change them only if you know what you're doing. also migrations
+# generated before UP_MARK / DOWN_MARK change won't be parsed
+#
+# COLOR="{auto|always|never}" - color output policy. default is auto
+#
+# SCHEMA_TABLE="string" - valid table name to use for tracking current
+#                         schema version
+#
+# TYPE="{sqlite3|postgresql|mysql}" - type of database. required
+# DATABASE="database name" - name of database to connect to
+# LOGIN="user" - user to connect as
+# HOST="host" - host of database to connect to
+# PASSWORD="secret" - password to connect with
+# PORT="N" - database port number
+# ARGS="..." - additional arguments passed to CLI client
+#
+# Actually you can do here pretty much anything
+# because this file is directly included into shmig.
+# See SHMIG script for details
+#
+# !!! WARNING !!!
+# If any command not part of condition or expression will fail in configuration
+# file then script will bail out with error
+
+TYPE="mysql"
+HOST="localhost"
+DATABASE="db"
+LOGIN="user"
+PASSWORD="password"
