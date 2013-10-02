@@ -426,14 +426,13 @@ is_numeric(){
 # main function processing migrations.
 migrate(){
   local me="$1" # title of this action
-  local dir="$2" # a way to compare version with until argument. -ge / -le
-  local message="$3" # message to display when processing migration: applying for up or reverting for down
-  local since="$4" # applied section markers and name
-  local till="$5"
-  local sname="$6"
-  local src="$7" # source function. should accept number of migrations to display and print their file names
-  local version_change_sql="$8" # command that who gets version and should print sql to execute (used to add/remove version in $SCHEMA_TABLE)
-  shift 8
+  local message="$2" # message to display when processing migration: applying for up or reverting for down
+  local since="$3" # applied section markers and name
+  local till="$4"
+  local sname="$5"
+  local src="$6" # source function. should accept number of migrations to display and print their file names
+  local version_change_sql="$7" # command that who gets version and should print sql to execute (used to add/remove version in $SCHEMA_TABLE)
+  shift 7
 
   local steps=""
   local stopver=""
@@ -471,7 +470,13 @@ migrate(){
     local name=$(migration_name "$fname")
 
     # if until is given and we're hitting it then break
-    [[ -n $stopver ]] && [ "$version" "$dir" "$stopver" ] && break
+    if [[ -n $stopver ]]
+    then
+      case "$me" in
+          up) (( version > stopver )) && break ;;
+        down) (( version < stopver )) && break ;;
+      esac
+    fi
 
     # pipe section from migration and version change SQL into CLI client of specified type
     (
@@ -489,13 +494,13 @@ migrate(){
 
 # a wrapper for migrate that applies migrations
 up(){
-  migrate "up" "-gt" "${LCYAN}applying ${CLEAR}" "$UP_MARK" "$DOWN_MARK" "UP" \
+  migrate "up" "${LCYAN}applying ${CLEAR}" "$UP_MARK" "$DOWN_MARK" "UP" \
     "pending_migrations" "${TYPE}_bump_version_sql" "$@"
 }
 
 # a wrapper for migrate that reverts migrations
 down(){
-  migrate "down" "-lt" "${LGREEN}reverting${CLEAR}" "$DOWN_MARK" "$UP_MARK" "DOWN" \
+  migrate "down" "${LGREEN}reverting${CLEAR}" "$DOWN_MARK" "$UP_MARK" "DOWN" \
     "previous_migrations" "${TYPE}_drop_version_sql" "$@"
 }
 
