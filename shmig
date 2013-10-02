@@ -507,7 +507,7 @@ down(){
 # parse command line and store variables in _VAR to overwrite config values
 # later
 
-PARSED_ARGUMENTS=$(getopt -s bash -o hc:t:m:d:l:H:p:P:s:a:AVC: --long help,config:,type:,migrations:,database:,login:,host:,password:,port:,schema-table:,args:,ask-password,version,color: -n "$ME" -- "$@")
+PARSED_ARGUMENTS=$(getopt -s bash -o hc:t:m:d:l:H:p:P:s:a:AVC: -l help,config:,type:,migrations:,database:,login:,host:,password:,port:,schema-table:,args:,ask-password,version,color: -n "$ME" -- "$@")
 [[ $? -ne 0 ]] && usage 1
 
 eval set -- "$PARSED_ARGUMENTS"
