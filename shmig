@@ -656,7 +656,7 @@ fi
 [[ -z $DATABASE   ]] && die "${BOLD}${LYELLOW}database name${CLEAR} ${RED}required${CLEAR}"
 [[ -d $MIGRATIONS ]] || die "${BOLD}${LYELLOW}migrations directory${CLEAR} ${RED}is not a directory${CLEAR}"
 
-[[ $# -eq 0 ]] && die "${BOLD}${LYELLOW}action{$CLEAR} ${RED}required${CLEAR}"
+[[ $# -eq 0 ]] && die "${BOLD}${LYELLOW}action${CLEAR} ${RED}required${CLEAR}"
 ACTION="$1"
 shift
 
