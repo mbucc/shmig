@@ -19,7 +19,7 @@ SQLITE3="/usr/bin/sqlite3"
 UP_MARK="====  UP  ===="
 DOWN_MARK="==== DOWN ===="
 
-VERSION="Version 0.1A by naquad"
+VERSION="Version 0.1B by naquad"
 
 COLOR="auto"
 
@@ -507,78 +507,26 @@ down(){
 # parse command line and store variables in _VAR to overwrite config values
 # later
 
-PARSED_ARGUMENTS=$(getopt -s bash -o hc:t:m:d:l:H:p:P:s:a:AVC: -l help,config:,type:,migrations:,database:,login:,host:,password:,port:,schema-table:,args:,ask-password,version,color: -n "$ME" -- "$@")
-[[ $? -ne 0 ]] && usage 1
-
-eval set -- "$PARSED_ARGUMENTS"
-
-while true
+while getopts hc:t:m:d:l:H:p:P:s:a:AVC: arg
 do
-  case "$1" in
-    -h|--help)
-      usage 0
-      ;;
-    -c|--config) 
-      CONFIG_EXPLICITLY_SET="1"
-      CONFIG="$2"
-      shift;
-      ;;
-    -t|--type)
-      _TYPE="$2"
-      shift
-      ;;
-    -m|--migrations)
-      _MIGRATIONS="$2"
-      shift
-      ;;
-    -d|--database)
-      _DATABASE="$2"
-      shift
-      ;;
-    -l|--login)
-      _LOGIN="$2"
-      shift
-      ;;
-    -H|--host)
-      _HOST="$2"
-      shift
-      ;;
-    -p|--password)
-      _PASSWORD="$2"
-      shift
-      ;;
-    -P|--port)
-      _PORT="$2"
-      shift
-      ;;
-    -s|--schema-table)
-      _SCHEMA_TABLE="$2"
-      shift
-      ;;
-    -a|--args)
-      _ARGS="$2"
-      shift
-      ;;
-    -V|--version)
-      version
-      ;;
-    -A|--ask-password)
-      ASK_PASSWORD="1"
-      ;;
-    -C|--colors)
-      _COLOR="$2"
-      shift
-      ;;
-    --)
-      shift
-      break
-      ;;
-    *)
-      die "internal error"
-      ;;
+  case $arg in
+    h)   usage 0;;
+    c)   CONFIG_EXPLICITLY_SET="1"
+         CONFIG="$OPTARG";;
+    t)   _TYPE="$OPTARG";;
+    m)   _MIGRATIONS="$OPTARG";;
+    d)   _DATABASE="$OPTARG";;
+    l)   _LOGIN="$OPTARG";;
+    H)   _HOST="$OPTARG";;
+    p)   _PASSWORD="$OPTARG";;
+    P)   _PORT="$OPTARG" ;;
+    s)   _SCHEMA_TABLE="$OPTARG" ;;
+    a)   _ARGS="$OPTARG" ;;
+    V)   version ;;
+    A)   ASK_PASSWORD="1" ;;
+    C)   _COLOR="$OPTARG" ;;
+    *)   die "internal error" ;;
   esac
-
-  shift
 done
 
 # if config exists
