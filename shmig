@@ -381,7 +381,7 @@ pending_migrations(){
   local last=$("${TYPE}_previous_versions" 1)
   last="${last:-0}"
 
-  find_migrations | sort -t- -k1nr | awk -v"limit=${1:--1}" -v"last=$last" -F/ \
+  find_migrations | sort -t- -k1nr | awk -v "limit=${1:--1}" -v "last=$last" -F/ \
     'limit&&$NF~/^[0-9]+-.*\.sql$/&&int($NF)>last{
       print;
       --limit;
