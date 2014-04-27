@@ -525,7 +525,7 @@ do
     V)   version ;;
     A)   ASK_PASSWORD="1" ;;
     C)   _COLOR="$OPTARG" ;;
-    *)   die "internal error" ;;
+    ?)   exit 1 ;;
   esac
 done
 
