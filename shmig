@@ -355,8 +355,10 @@ create(){
 
   echo "$name" | grep -E -qi '^[a-z0-9_. -]+$' || die "${LRED}invalid migration name:${CLEAR} $name"
 
-  find_migrations -printf "%P\n" | sed -n 's/^[0-9]*-\|\.sql$//g;T;p' | \
-    grep -F -qx -- "$name" && die "${LRED}migration '${LYELLOW}$name${LRED}' already exists${CLEAR}"
+  # As of 4/28/2014, seconds since epoch has ten digits.
+  find_migrations -name "*[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]-$name.sql" \
+    | grep -q "\-$name\.sql" \
+    && die "${LRED}migration '${LYELLOW}$name${LRED}' already exists${CLEAR}"
 
   local fname="$MIGRATIONS/$(date +%s)-$(echo "$name" | tr \  _).sql"
 
