@@ -1,4 +1,4 @@
-#!/bin/bash 
+#!/bin/bash
 
 # SHMIG. Database migration tool in BASH.
 # Copyright 2013 naquad <naquad@gmail.com>
@@ -302,7 +302,7 @@ find_migrations(){
 
 # extract version from migration file name
 migration_version(){
-  echo "$1" | sed -e 's#.*[/\\]\|-.*##g'
+  basename "$1" | cut -d - -f 1
 }
 
 # get migration name or title.
