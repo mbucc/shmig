@@ -510,22 +510,22 @@ down(){
 while getopts hc:t:m:d:l:H:p:P:s:a:AVC: arg
 do
   case $arg in
-    h)   usage 0;;
+    h)   usage 0                              ;;
     c)   CONFIG_EXPLICITLY_SET="1"
-         CONFIG="$OPTARG";;
-    t)   _TYPE="$OPTARG";;
-    m)   _MIGRATIONS="$OPTARG";;
-    d)   _DATABASE="$OPTARG";;
-    l)   _LOGIN="$OPTARG";;
-    H)   _HOST="$OPTARG";;
-    p)   _PASSWORD="$OPTARG";;
-    P)   _PORT="$OPTARG" ;;
-    s)   _SCHEMA_TABLE="$OPTARG" ;;
-    a)   _ARGS="$OPTARG" ;;
-    V)   version ;;
-    A)   ASK_PASSWORD="1" ;;
-    C)   _COLOR="$OPTARG" ;;
-    ?)   exit 1 ;;
+         CONFIG="$OPTARG";         shift;shift;;
+    t)   _TYPE="$OPTARG";          shift;shift;;
+    m)   _MIGRATIONS="$OPTARG";    shift;shift;;
+    d)   _DATABASE="$OPTARG";      shift;shift;;
+    l)   _LOGIN="$OPTARG";         shift;shift;;
+    H)   _HOST="$OPTARG";          shift;shift;;
+    p)   _PASSWORD="$OPTARG";      shift;shift;;
+    P)   _PORT="$OPTARG" ;         shift;shift;;
+    s)   _SCHEMA_TABLE="$OPTARG" ; shift;shift;;
+    a)   _ARGS="$OPTARG" ;         shift;shift;;
+    V)   version                              ;;
+    A)   ASK_PASSWORD="1" ;        shift;     ;;
+    C)   _COLOR="$OPTARG" ;        shift;shift;;
+    ?)   exit 1                               ;;
   esac
 done
 
