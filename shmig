@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash 
 
 # SHMIG. Database migration tool in BASH.
 # Copyright 2013 naquad <naquad@gmail.com>
@@ -335,7 +335,9 @@ migration_section(){
   local tmpfile="${TMPDIR:-/tmp}/shmig-migration-section.$$.${RANDOM}.sql"
   local result="0"
 
-  sed -n -e '/'"$since"'/,/'"$till"'/{/'"$till"'\|'"$since"'/d;p}' "$fname" > "$tmpfile"
+  sed -n -e '/'"$since"'/,/'"$till"'/p' "$fname"\
+	 | grep -v "^--" \
+	 > "$tmpfile"
 
   if grep -E -m1 -q '[^ \t]' "$tmpfile"
   then
