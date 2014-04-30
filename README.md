@@ -26,14 +26,14 @@ SHMIG tries to read configuration from config file (see `shmig.conf.example`), y
 
 Required options are:
 
-  1. `TYPE` or `-t`/`--type` - database type
-  2. `DATABASE` or `-d`/`--database` - database to operate on
-  3. `MIGRATIONS` or `-m`/`--migrations` - directory with migrations
+  1. `TYPE` or `-t` - database type
+  2. `DATABASE` or `-d` - database to operate on
+  3. `MIGRATIONS` or `-m` - directory with migrations
 
-All other options (see `shmig.conf.example` and `shmig --help`) are not necessary.
+All other options (see `shmig.conf.example` and `shmig -h`) are not necessary.
 To simplify usage you should create `shmig.conf` file in your project root directory and put there configuration then just run `shmig <action> ...` in that directory.
 
-For detailed information see `shmig.conf.example` and `shmig --help`.
+For detailed information see `shmig.conf.example` and `shmig -h`.
 
 Migrations
 ----------
