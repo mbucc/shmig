@@ -339,7 +339,7 @@ migration_section(){
 	 | grep -v "^--" \
 	 > "$tmpfile"
 
-  if grep -E -m1 -q '[^ \t]' "$tmpfile"
+  if grep -E -q '[^ \t]' "$tmpfile"
   then
     cat "$tmpfile"
   else
