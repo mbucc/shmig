@@ -302,7 +302,7 @@ find_migrations(){
 
 # extract version from migration file name
 migration_version(){
-  echo "$1" | sed -e 's#.*[/\\]\|-.*##g'
+  basename "$1" | cut -d - -f 1
 }
 
 # get migration name or title.
@@ -335,9 +335,11 @@ migration_section(){
   local tmpfile="${TMPDIR:-/tmp}/shmig-migration-section.$$.${RANDOM}.sql"
   local result="0"
 
-  sed -n -e '/'"$since"'/,/'"$till"'/{/'"$till"'\|'"$since"'/d;p}' "$fname" > "$tmpfile"
+  sed -n -e '/'"$since"'/,/'"$till"'/p' "$fname"\
+	 | grep -v "^--" \
+	 > "$tmpfile"
 
-  if grep -E -m1 -q '[^ \t]' "$tmpfile"
+  if grep -E -q '[^ \t]' "$tmpfile"
   then
     cat "$tmpfile"
   else
@@ -355,8 +357,10 @@ create(){
 
   echo "$name" | grep -E -qi '^[a-z0-9_. -]+$' || die "${LRED}invalid migration name:${CLEAR} $name"
 
-  find_migrations -printf "%P\n" | sed -n 's/^[0-9]*-\|\.sql$//g;T;p' | \
-    grep -F -qx -- "$name" && die "${LRED}migration '${LYELLOW}$name${LRED}' already exists${CLEAR}"
+  # As of 4/28/2014, seconds since epoch has ten digits.
+  find_migrations -name "*[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]-$name.sql" \
+    | grep -q "\-$name\.sql" \
+    && die "${LRED}migration '${LYELLOW}$name${LRED}' already exists${CLEAR}"
 
   local fname="$MIGRATIONS/$(date +%s)-$(echo "$name" | tr \  _).sql"
 
@@ -510,24 +514,25 @@ down(){
 while getopts hc:t:m:d:l:H:p:P:s:a:AVC: arg
 do
   case $arg in
-    h)   usage 0                              ;;
+    h)   usage 0                   ;;
     c)   CONFIG_EXPLICITLY_SET="1"
-         CONFIG="$OPTARG";         shift;shift;;
-    t)   _TYPE="$OPTARG";          shift;shift;;
-    m)   _MIGRATIONS="$OPTARG";    shift;shift;;
-    d)   _DATABASE="$OPTARG";      shift;shift;;
-    l)   _LOGIN="$OPTARG";         shift;shift;;
-    H)   _HOST="$OPTARG";          shift;shift;;
-    p)   _PASSWORD="$OPTARG";      shift;shift;;
-    P)   _PORT="$OPTARG" ;         shift;shift;;
-    s)   _SCHEMA_TABLE="$OPTARG" ; shift;shift;;
-    a)   _ARGS="$OPTARG" ;         shift;shift;;
-    V)   version                              ;;
-    A)   ASK_PASSWORD="1" ;        shift;     ;;
-    C)   _COLOR="$OPTARG" ;        shift;shift;;
-    ?)   exit 1                               ;;
+         CONFIG="$OPTARG"          ;;
+    t)   _TYPE="$OPTARG"           ;;
+    m)   _MIGRATIONS="$OPTARG"     ;;
+    d)   _DATABASE="$OPTARG"       ;;
+    l)   _LOGIN="$OPTARG"          ;;
+    H)   _HOST="$OPTARG"           ;;
+    p)   _PASSWORD="$OPTARG"       ;;
+    P)   _PORT="$OPTARG"           ;;
+    s)   _SCHEMA_TABLE="$OPTARG"   ;;
+    a)   _ARGS="$OPTARG"           ;;
+    V)   version                   ;;
+    A)   ASK_PASSWORD="1"          ;;
+    C)   _COLOR="$OPTARG"          ;;
+    ?)   exit 1                    ;;
   esac
 done
+shift $(($OPTIND - 1))
 
 # if config exists
 if [[ -e $CONFIG ]]
