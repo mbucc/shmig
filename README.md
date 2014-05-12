@@ -6,9 +6,16 @@ A database migration tool written in BASH consisting of just one file - `shmig`.
 Why?
 ----
 
-Currently there are lots of database migration tools such as [DBV](http://dbv.vizuina.com/), [Liquibase](http://www.liquibase.org/) and other framework-specific ones (for Ruby on Rails, Yii, Laravel, ...). But they all are pretty heavy, with lots of dependencies (or even unusable outside of their stack), some own DSLs...
+Currently there are lots of database migration tools such as
+[DBV](http://dbv.vizuina.com/), [Liquibase](http://www.liquibase.org/),
+[sqitch](http://sqitch.org/), [Flyway](http://flywaydb.org/)
+and other framework-specific ones (for Ruby on Rails, Yii, Laravel,
+...). But they all are pretty heavy, with lots of dependencies (or
+even unusable outside of their stack), some own DSLs...
 
-I needed some simple, reliable solution with minimum dependencies and able to run in pretty much any POSIX-compatible environment against different databases (PostgreSQL, MySQL, SQLite3).
+I needed some simple, reliable solution with minimum dependencies
+and able to run in pretty much any POSIX-compatible environment
+against different databases (PostgreSQL, MySQL, SQLite3).
 
 And here's the result.
 
