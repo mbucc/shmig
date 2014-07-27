@@ -607,7 +607,7 @@ fi
 # required arguments and sanity checks
 [[ -z $TYPE       ]] && die "${BOLD}${LYELLOW}database type${CLEAR} ${RED}required${CLEAR}"
 [[ -z $DATABASE   ]] && die "${BOLD}${LYELLOW}database name${CLEAR} ${RED}required${CLEAR}"
-[[ -d $MIGRATIONS ]] || die "${BOLD}${LYELLOW}migrations directory${CLEAR} ${RED}is not a directory${CLEAR}"
+[[ -d $MIGRATIONS ]] || die "${BOLD}${LYELLOW}the migrations directory ($MIGRATIONS)${CLEAR} ${RED}is not a directory${CLEAR}"
 
 [[ $# -eq 0 ]] && die "${BOLD}${LYELLOW}action${CLEAR} ${RED}required${CLEAR}"
 ACTION="$1"
