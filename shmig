@@ -2,6 +2,7 @@
 
 # SHMIG. Database migration tool in BASH.
 # Copyright 2013 naquad <naquad@gmail.com>
+# Copyright 2014 mbucciarelli <mkbucc@gmail.com>
 
 # default values for variables
 
@@ -67,50 +68,50 @@ usage(){
   cat >&"$output" <<EOF
 Usage: $ME [options] <action> [arguments...]
 Where options are:
-  -h --help
+  -h
       show this message
 
-  -c --config FILE
+  -c FILE
       read configuration file from (default is $CONFIG)
 
-  -t --type TYPE
+  -t TYPE
       database type (supported are mysql, postgresql, sqlite3)
 
-  -m --migrations DIR
+  -m DIR
       files with migrations (default is $MIGRATIONS)
 
-  -d --database DATABASE
+  -d DATABASE
       database name
 
-  -l --login LOGIN
+  -l LOGIN
       set database user name to connect as (not used for sqlite3)
 
-  -H --host LOGIN
+  -H LOGIN
       set database host to connect to (not used for sqlite3)
 
-  -p --password PASSWORD
+  -p PASSWORD
       password to be used when connecting (not used for sqlite3)
 
-  -P --port PORT
+  -P PORT
       set database port to connect to (not used for sqlite3)
 
-  -s --schema-table TABLE
+  -s TABLE
       name of schema table (default is $SCHEMA_TABLE)
 
-  -a --args ARGS
+  -a ARGS
       additional arguments for database client passed as is
 
-  -A --ask-password
+  -A
       ask for password
 
-  -C --color COLOR
+  -C COLOR
       set color policy. possible options:
           auto - default. will use colors if possible
           never - do not use colors
           always - always use colors
       default is $COLOR
 
-  -V --version
+  -V
       shows version information
 
 Actions are:
