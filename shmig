@@ -220,6 +220,23 @@ mysql_drop_version_sql(){
   __generic_drop_version_sql '`' "$1"
 }
 
+mysql_up_text() {
+cat >> $1 << EOF
+BEGIN;
+
+COMMIT;
+EOF
+}
+
+
+mysql_down_text() {
+cat >> $1 << EOF
+BEGIN;
+
+COMMIT;
+EOF
+}
+
 ##### MySQL end
 
 ##### PostgreSQL
@@ -259,6 +276,23 @@ postgresql_drop_version_sql(){
   __generic_drop_version_sql '"' "$1"
 }
 
+postgresql_up_text() {
+cat >> $1 << EOF
+BEGIN;
+
+COMMIT;
+EOF
+}
+
+
+postgresql_down_text() {
+cat >> $1 << EOF
+BEGIN;
+
+COMMIT;
+EOF
+}
+
 ##### PostgreSQL end
 
 ##### SQLite3
@@ -290,6 +324,23 @@ sqlite3_bump_version_sql(){
 
 sqlite3_drop_version_sql(){
   __generic_drop_version_sql '`' "$1"
+}
+
+sqlite3_up_text() {
+cat >> $1 << EOF
+BEGIN;
+	PRAGMA oreign_keys = ON;
+
+COMMIT;
+EOF
+}
+
+sqlite3_down_text() {
+cat >> $1 << EOF
+BEGIN;
+
+COMMIT;
+EOF
 }
 
 ##### SQLite3 end
@@ -370,9 +421,18 @@ create(){
 -- Created at: $(date +"%Y-%m-%d %H:%M:%S")
 -- $UP_MARK
 
+EOF
+
+${TYPE}_up_text $fname
+
+cat >> "$fname" << EOF
+
 -- $DOWN_MARK
 
 EOF
+
+${TYPE}_down_text $fname
+
   local retval="$?"
 
   [[ $retval -eq 0 ]] && echo -e "generated ${BOLD}${LGREEN}$fname${CLEAR}"
