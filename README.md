@@ -6,7 +6,7 @@ A database migration tool written in BASH consisting of just one file - `shmig`.
 
 Quick Start
 ----------
-
+```
   $ cd shmig
   $ make install
   $ cd <project>/db
@@ -14,6 +14,7 @@ Quick Start
   $ shmig -t sqlite3 -d test.db create mytable
   generated migrations/1406506130-mytable.sql
   $ vi migrations/1406506130-mytable.sql
+```
 
 Edit sqlite3_up_text() and sqlite3_down_text() in script if you don't like the default SQL template.
 
