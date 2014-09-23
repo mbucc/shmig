@@ -171,7 +171,8 @@ __generic_checker(){
 }
 
 __generic_previous_versions(){
-  local sql="select version from $1$SCHEMA_TABLE$1 order by version desc"
+  local fields="${3:-version}"
+  local sql="select $fields from $1$SCHEMA_TABLE$1 order by version desc"
   [[ -n $2 ]] && sql="$sql limit $2"
   "${TYPE}_cli" "$sql;" || exit 1
 }
@@ -209,7 +210,8 @@ mysql_check(){
 }
 
 mysql_previous_versions(){
-  __generic_previous_versions '`' "$1"
+  local fields="lpad(version, 10, '0') as version"
+  __generic_previous_versions '`' "$1" "$fields"
 }
 
 mysql_bump_version_sql(){
@@ -265,7 +267,8 @@ postgresql_check(){
 }
 
 postgresql_previous_versions(){
-  __generic_previous_versions '"' "$1"
+   local fields="lpad(version, 10, '0') as version"
+   __generic_previous_versions '"' "$1" "$fields"
 }
 
 postgresql_bump_version_sql(){
@@ -315,7 +318,8 @@ sqlite3_check(){
 }
 
 sqlite3_previous_versions(){
-  __generic_previous_versions '`' "$1"
+  local fields="substr('0000000000' || version, -10, 10) as version"
+  __generic_previous_versions '`' "$1" "$fields"
 }
 
 sqlite3_bump_version_sql(){
