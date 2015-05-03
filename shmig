@@ -267,7 +267,7 @@ postgresql_check(){
 }
 
 postgresql_previous_versions(){
-   local fields="lpad(version, 10, '0') as version"
+   local fields="to_char(version,'0000000000') as version"
    __generic_previous_versions '"' "$1" "$fields"
 }
 
