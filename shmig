@@ -20,7 +20,7 @@ SQLITE3="/usr/bin/sqlite3"
 UP_MARK="====  UP  ===="
 DOWN_MARK="==== DOWN ===="
 
-VERSION="Version 0.1B by naquad"
+VERSION="Version 1.1.0"
 
 COLOR="auto"
 
@@ -52,7 +52,7 @@ warn(){
 
 die(){
   [[ $# -gt 0 ]] && warn "$@"
-  exit 1
+  usage 1
 }
 
 version(){
