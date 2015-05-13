@@ -152,7 +152,6 @@ Actions are:
   pending
       show migrations that are not applied
 
-$VERSION
 EOF
 
   exit "$1"
