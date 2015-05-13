@@ -51,8 +51,24 @@ warn(){
 }
 
 die(){
+  cat >&2 <<EOF
+Usage: $ME [options] <action> [arguments...]
+Where options include are:
+  -h
+      show a more detailed usage
+
+  -C COLOR
+      set color policy. possible options:
+          auto - default. will use colors if possible
+          never - do not use colors
+          always - always use colors
+      default is $COLOR
+
+and action is one of create, up, down, rollback, redo, and pending
+
+EOF
   [[ $# -gt 0 ]] && warn "$@"
-  usage 1
+  exit 1
 }
 
 version(){
