@@ -62,7 +62,6 @@ Where options include are:
           auto - default. will use colors if possible
           never - do not use colors
           always - always use colors
-      default is $COLOR
 
 and action is one of create, up, down, rollback, redo, and pending
 
