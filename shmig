@@ -347,7 +347,7 @@ sqlite3_drop_version_sql(){
 sqlite3_up_text() {
 cat >> $1 << EOF
 BEGIN;
-	PRAGMA oreign_keys = ON;
+	PRAGMA foreign_keys = ON;
 
 COMMIT;
 EOF
