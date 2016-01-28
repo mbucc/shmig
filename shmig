@@ -199,6 +199,11 @@ __generic_drop_version_sql(){
   echo "delete from $1$SCHEMA_TABLE$1 where version = $2;"
 }
 
+__generic_status(){
+  local sql="select * from $1$SCHEMA_TABLE$1 order by version desc"
+  "${TYPE}_cli" "$sql;" || exit 1
+}
+
 ### Generic implementations end
 
 ##### MySQL
@@ -220,7 +225,7 @@ mysql_cli(){
 
 mysql_check(){
   __generic_checker "$MYSQL" "show tables;" \
-    "create table \`$SCHEMA_TABLE\`(version int not null primary key);"
+    "create table \`$SCHEMA_TABLE\`(version int not null primary key, migrated_at timestamp default current_timestamp);"
 }
 
 mysql_previous_versions(){
@@ -234,6 +239,10 @@ mysql_bump_version_sql(){
 
 mysql_drop_version_sql(){
   __generic_drop_version_sql '`' "$1"
+}
+
+mysql_status(){
+  __generic_status '`'
 }
 
 mysql_up_text() {
@@ -277,7 +286,7 @@ postgresql_cli(){
 postgresql_check(){
   __generic_checker "$PSQL" \
     "select table_name from information_schema.tables where table_schema = 'public';" \
-    "create table \"$SCHEMA_TABLE\"(version int not null primary key);"
+    "create table \"$SCHEMA_TABLE\"(version int not null primary key, migrated_at timestamp default now());"
 }
 
 postgresql_previous_versions(){
@@ -291,6 +300,10 @@ postgresql_bump_version_sql(){
 
 postgresql_drop_version_sql(){
   __generic_drop_version_sql '"' "$1"
+}
+
+postgresql_status(){
+  __generic_status '"'
 }
 
 postgresql_up_text() {
@@ -328,7 +341,7 @@ sqlite3_cli(){
 sqlite3_check(){
   __generic_checker "$SQLITE3" \
     "select name from sqlite_master where type = 'table';" \
-    "create table \`$SCHEMA_TABLE\`(version int not null primary key);"
+    "create table \`$SCHEMA_TABLE\`(version int not null primary key, migrated_at timestamp default (datetime(current_timestamp)));"
 }
 
 sqlite3_previous_versions(){
@@ -342,6 +355,10 @@ sqlite3_bump_version_sql(){
 
 sqlite3_drop_version_sql(){
   __generic_drop_version_sql '`' "$1"
+}
+
+sqlite3_status(){
+  __generic_status '`'
 }
 
 sqlite3_up_text() {
@@ -499,6 +516,12 @@ pending(){
   do
     echo "${fname##*[/\\]}"
   done
+}
+
+# Get the list of applied migrations
+status(){
+  echo "Applied migrations:"
+  "${TYPE}_status"
 }
 
 # checks if given argument is numeric or empty
@@ -720,6 +743,9 @@ case "$ACTION" in
     ;;
   pending)
     pending "$@"
+    ;;
+  status)
+    status "$@"
     ;;
   *)
     die "${LRED}unknown action:${CLEAR} $ACTION"
