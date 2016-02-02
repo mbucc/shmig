@@ -228,7 +228,7 @@ mysql_cli(){
 
 mysql_check(){
   __generic_checker "$MYSQL" "show tables;" \
-    "create table \`$SCHEMA_TABLE\`(version int not null primary key, migrated_at timestamp not null default current_timestamp);"
+    "create table \`$SCHEMA_TABLE\`(version int not null primary key, migrated_at timestamp not null default utc_timestamp());"
 }
 
 mysql_previous_versions(){
