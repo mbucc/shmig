@@ -151,6 +151,9 @@ Actions are:
   pending
       show migrations that are not applied
 
+  status
+      show which migrations were applied and at which time in UTC
+
 EOF
 
   exit "$1"
@@ -200,7 +203,7 @@ __generic_drop_version_sql(){
 }
 
 __generic_status(){
-  local sql="select * from $1$SCHEMA_TABLE$1 order by version desc"
+  local sql="select $2 from $1$SCHEMA_TABLE$1 order by version desc"
   "${TYPE}_cli" "$sql;" || exit 1
 }
 
@@ -242,7 +245,7 @@ mysql_drop_version_sql(){
 }
 
 mysql_status(){
-  __generic_status '`'
+  __generic_status '`' "version, CONVERT_TZ(\`migrated_at\`, @@session.time_zone, '+00:00') AS \`utc_datetime\`"
 }
 
 mysql_up_text() {
@@ -286,7 +289,7 @@ postgresql_cli(){
 postgresql_check(){
   __generic_checker "$PSQL" \
     "select table_name from information_schema.tables where table_schema = 'public';" \
-    "create table \"$SCHEMA_TABLE\"(version int not null primary key, migrated_at timestamp default now());"
+    "create table \"$SCHEMA_TABLE\"(version int not null primary key, migrated_at timestamp default (now() at time zone 'utc'));"
 }
 
 postgresql_previous_versions(){
@@ -303,7 +306,7 @@ postgresql_drop_version_sql(){
 }
 
 postgresql_status(){
-  __generic_status '"'
+  __generic_status '"' '*'
 }
 
 postgresql_up_text() {
@@ -358,7 +361,7 @@ sqlite3_drop_version_sql(){
 }
 
 sqlite3_status(){
-  __generic_status '`'
+  __generic_status '`' '*'
 }
 
 sqlite3_up_text() {
