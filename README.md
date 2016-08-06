@@ -29,12 +29,12 @@ Quick Start
   
   COMMIT;
   $ # In normal usage, you would add SQL to this migration file.
-  $ shmig -t sqlite3 -d test migrate
+  $ shmig -t sqlite3 -d test.db migrate
   shmig: creating migrations table: shmig_version
   shmig: applying  'mytable'    (1470490964)... done
   $ ls -l test.db
   -rw-r--r--  1 mark  staff  12288 Aug  6 09:41 test.db
-  $ shmig -t sqlite3 -d test rollback
+  $ shmig -t sqlite3 -d test.db rollback
   shmig: reverting 'mytable'    (1470490964)... done
   $ shmig -h | wc -l
   73
