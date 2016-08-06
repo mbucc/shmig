@@ -53,17 +53,11 @@ warn(){
 die(){
   cat >&2 <<EOF
 Usage: $ME [options] <action> [arguments...]
-Where options include are:
+Common options:
+  -d <database name>
+  -t [mysql|postgresql|sqlite3]
   -h
-      show a more detailed usage
-
-  -C COLOR
-      set color policy. possible options:
-          auto - default. will use colors if possible
-          never - do not use colors
-          always - always use colors
-
-and action is one of create, up, down, rollback, status, redo, and pending
+and action is one of create, up, down, rollback, status, redo, and pending.
 
 EOF
   [[ $# -gt 0 ]] && warn "$@"
