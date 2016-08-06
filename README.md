@@ -11,7 +11,7 @@ Quick Start
   $ make install
   $ cd $HOME
   $ mkdir migrations
-  $ shmig -C never -t sqlite3 -d test.db create mytable
+  $ shmig -t sqlite3 -d test.db create mytable
   generated ./migrations/1470490964-mytable.sql
   $ cat ./migrations/1470490964-mytable.sql
   -- Migration: mytable

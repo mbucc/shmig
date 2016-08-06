@@ -22,7 +22,7 @@ DOWN_MARK="==== DOWN ===="
 
 VERSION="Version 1.1.0"
 
-COLOR="auto"
+COLOR="never"
 
 # until parsing options and figuring out color policy
 # we assume color output is not used
