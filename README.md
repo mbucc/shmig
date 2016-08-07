@@ -9,11 +9,36 @@ Quick Start
 ```
   $ cd shmig
   $ make install
-  $ cd <project>/db
+  $ cd $HOME
   $ mkdir migrations
   $ shmig -t sqlite3 -d test.db create mytable
-  generated migrations/1406506130-mytable.sql
-  $ vi migrations/1406506130-mytable.sql
+  generated ./migrations/1470490964-mytable.sql
+  $ cat ./migrations/1470490964-mytable.sql
+  -- Migration: mytable
+  -- Created at: 2016-08-06 09:42:44
+  -- ====  UP  ====
+  
+  BEGIN;
+  	PRAGMA foreign_keys = ON;
+  
+  COMMIT;
+  
+  -- ==== DOWN ====
+  
+  BEGIN;
+  
+  COMMIT;
+  $ # In normal usage, you would add SQL to this migration file.
+  $ shmig -t sqlite3 -d test.db migrate
+  shmig: creating migrations table: shmig_version
+  shmig: applying  'mytable'    (1470490964)... done
+  $ ls -l test.db
+  -rw-r--r--  1 mark  staff  12288 Aug  6 09:41 test.db
+  $ shmig -t sqlite3 -d test.db rollback
+  shmig: reverting 'mytable'    (1470490964)... done
+  $ shmig -h | wc -l
+  73
+  $
 ```
 
 Edit sqlite3_up_text() and sqlite3_down_text() in script if you don't like the default SQL template.
