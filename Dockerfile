@@ -6,8 +6,7 @@ RUN apk add mysql-client
 RUN apk add sqlite
 RUN apk add --update openssl
 
-RUN wget -O /bin/shmig https://raw.githubusercontent.com/naquad/shmig/master/shmig
-RUN chmod +x /bin/shmig
+ADD shmig /bin/shmig
 
 ## SHMIG configuration
 ENV TYPE mysql
