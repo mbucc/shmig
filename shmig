@@ -383,7 +383,7 @@ EOF
 
 # a wrapper for find that looks for migration files
 find_migrations(){
-  find "$MIGRATIONS" -maxdepth 1 -mindepth 1 -type f "$@"
+  find "$MIGRATIONS" -maxdepth 1 -mindepth 1 -type f -follow "$@"
 }
 
 # extract version from migration file name
