@@ -17,16 +17,16 @@ Quick Start
   -- Migration: mytable
   -- Created at: 2016-08-06 09:42:44
   -- ====  UP  ====
-  
+
   BEGIN;
   	PRAGMA foreign_keys = ON;
-  
+
   COMMIT;
-  
+
   -- ==== DOWN ====
-  
+
   BEGIN;
-  
+
   COMMIT;
   $ # In normal usage, you would add SQL to this migration file.
   $ shmig -t sqlite3 -d test.db migrate
@@ -70,7 +70,12 @@ Using client options one can make its output suitable for batch processing with 
 Usage
 -----
 
-SHMIG tries to read configuration from config file (see `shmig.conf.example`), you can also configure it from command line (command line settings have higher priority than configuration file settings so you can override stuff).
+SHMIG tries to read configuration from the configuration file
+`shmig.conf` in the current working directory.  A sample configuration
+file is [`shmig.conf.example`](https://github.com/naquad/shmig/blob/master/shmig.conf.example).
+You can also configure SHMIG from command line, or by using
+environmental variables.  The command line settings have higher
+priority than configuration file or environment settings.
 
 Required options are:
 
