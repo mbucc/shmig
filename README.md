@@ -91,8 +91,13 @@ For detailed information see `shmig.conf.example` and `shmig -h`.
 Migrations
 ----------
 
-Migrations are SQL files whos name starts with "`<UNIX TIMESTAMP>-`" and end with ".sql".
-File contains two special markers: `-- ====  UP ====` that marks start of section that will be executed when migration is applied and `-- ==== DOWN ====` that marks start of section that will be executed when migration is revererted.
+Migrations are SQL files whos name starts with "`<UNIX TIMESTAMP>-`"
+and end with ".sql".  The order that new migrations are applied is
+[determined](https://github.com/naquad/shmig/blob/master/shmig#L481)
+by the seconds-since-epoch timestamp in the filename, with the
+oldest unapplied migration going first.
+
+Each migration contains two special markers: `-- ====  UP ====` that marks start of section that will be executed when migration is applied and `-- ==== DOWN ====` that marks start of section that will be executed when migration is revererted.
 
 For example:
 
