@@ -1,7 +1,7 @@
 SHMIG
 =====
 
-A database migration tool written in BASH consisting of just one file - `shmig`.
+A database migration tool written in BASH consisting of just one file - [`shmig`](https://github.com/naquad/shmig/blob/master/shmig).
 
 
 Quick Start
@@ -41,7 +41,7 @@ Quick Start
   $
 ```
 
-Edit sqlite3_up_text() and sqlite3_down_text() in script if you don't like the default SQL template.
+Edit [`sqlite3_up_text()`](https://github.com/naquad/shmig/blob/master/shmig#L361-L368) and [`sqlite3_down_text()`](https://github.com/naquad/shmig/blob/master/shmig#L370-L376)  in script if you don't like the default SQL template.
 
 
 Why?
@@ -65,7 +65,7 @@ Idea
 
 RDMS'es are bundled along with their console clients. MySQL has `mysql`, PostgreSQL has `psql` and SQLite3 has `sqlite3`. And thats it! This is enough for interacting with database in batch mode w/o any drivers or connectors.
 
-Using client options one can make its output suitable for batch processing with standard UNIX text-processing tools (`sed`, `grep`, `awk`, ...). This is enough for implementing simple migration system that'll store current schema version information withing database (see `SCHEMA_TABLE` variable in `shmig.conf.example`).
+Using client options one can make its output suitable for batch processing with standard UNIX text-processing tools (`sed`, `grep`, `awk`, ...). This is enough for implementing simple migration system that'll store current schema version information withing database (see [`SCHEMA_TABLE`](https://github.com/naquad/shmig/blob/a814690d5040e6aa8f05f112a8b66db9eedb1d07/shmig.conf.example#L21-L22) variable in [`shmig.conf.example`](https://github.com/naquad/shmig/blob/master/shmig.conf.example)).
 
 Usage
 -----
