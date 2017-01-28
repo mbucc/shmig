@@ -63,9 +63,9 @@ And here's the result.
 Idea
 ----
 
-RDMS'es are bundled along with their console clients. MySQL has `mysql`, PostgreSQL has `psql` and SQLite3 has `sqlite3`. And thats it! This is enough for interacting with database in batch mode w/o any drivers or connectors.
+RDMS'es are bundled along with their console clients. MySQL has `mysql`, PostgreSQL has `psql` and SQLite3 has `sqlite3`. And that's it! This is enough for interacting with database in batch mode w/o any drivers or connectors.
 
-Using client options one can make its output suitable for batch processing with standard UNIX text-processing tools (`sed`, `grep`, `awk`, ...). This is enough for implementing simple migration system that'll store current schema version information withing database (see [`SCHEMA_TABLE`](https://github.com/naquad/shmig/blob/a814690d5040e6aa8f05f112a8b66db9eedb1d07/shmig.conf.example#L21-L22) variable in [`shmig.conf.example`](https://github.com/naquad/shmig/blob/master/shmig.conf.example)).
+Using client options one can make its output suitable for batch processing with standard UNIX text-processing tools (`sed`, `grep`, `awk`, ...). This is enough for implementing simple migration system that will store current schema version information withing database (see [`SCHEMA_TABLE`](https://github.com/naquad/shmig/blob/a814690d5040e6aa8f05f112a8b66db9eedb1d07/shmig.conf.example#L21-L22) variable in [`shmig.conf.example`](https://github.com/naquad/shmig/blob/master/shmig.conf.example)).
 
 Usage
 -----
@@ -91,13 +91,13 @@ For detailed information see `shmig.conf.example` and `shmig -h`.
 Migrations
 ----------
 
-Migrations are SQL files whos name starts with "`<UNIX TIMESTAMP>-`"
+Migrations are SQL files whose name starts with "`<UNIX TIMESTAMP>-`"
 and end with ".sql".  The order that new migrations are applied is
 [determined](https://github.com/naquad/shmig/blob/master/shmig#L481)
-by the seconds-since-epoch timestamp in the filename, with the
-oldest unapplied migration going first.
+by the seconds-since-epoch time stamp in the filename, with the
+oldest migration going first.
 
-Each migration contains two special markers: `-- ====  UP ====` that marks start of section that will be executed when migration is applied and `-- ==== DOWN ====` that marks start of section that will be executed when migration is revererted.
+Each migration contains two special markers: `-- ====  UP ====` that marks start of section that will be executed when migration is applied and `-- ==== DOWN ====` that marks start of section that will be executed when migration is reverted.
 
 For example:
 
@@ -123,12 +123,12 @@ SHMIG can generate skeleton migration for you, see `create` action.
 Current state
 -------------
 
-This is very early release. I've tried it with SQLite3, PostgreSQL, MySQL databases and didn't find any bugs. If you find any then please report them along with your migrations (or similar that will allow to reproduce bug), tools versions, detailed description of steps and config file (w/o DB credentials).
+This is very early release. I've tried it with SQLite3, PostgreSQL, MySQL databases and didn't find any bugs. If you find any then please report them along with your migrations (or similar that will allow to reproduce bug), tools versions, detailed description of steps and configuration file (w/o DB credentials).
 
 Security considerations
 -----------------------
 
-Password is passed to `mysql` and `psql` via environment variable. This can be a security issue if your system allows other users to read environment of process that belogs to another user. In most Linux distributions with modern kernels this is forbidden. You can check this (on systems supporting /proc filesystem) like this: `cat /proc/1/env` - if you get permission denied error then you're secure.
+Password is passed to `mysql` and `psql` via environment variable. This can be a security issue if your system allows other users to read environment of process that belongs to another user. In most Linux distributions with modern kernels this is forbidden. You can check this (on systems supporting /proc file system) like this: `cat /proc/1/env` - if you get permission denied error then you're secure.
 
 Efficiency
 ----------
