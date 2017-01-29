@@ -1,2 +1,2 @@
 migrations/*
-test/sqlite3/test.db
+test/sql/test.db
