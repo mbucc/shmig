@@ -10,6 +10,6 @@ for c in $COMMANDS; do
 
 	printf "\n%s\n---------------\n" $c
 
-	docker run -v $(pwd)/sqlite3:/sql mkbucc/shmig -d /sql/test.db -t sqlite3 "$c"
+	docker run -v $(pwd)/sql:/sql mkbucc/shmig -d /sql/test.db -t sqlite3 "$c"
 
 done

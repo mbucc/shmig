@@ -20,7 +20,7 @@ for c in $COMMANDS; do
 	printf "\n%s\n---------------\n" $c
 
 	# Many of defaults from Docker file are used.
-	docker run -it --link shmig-mysql-test:mysql -v $(pwd)/mysql:/sql mkbucc/shmig -d mysql -H 172.17.0.2 -P 3306 "$c"
+	docker run -it --link shmig-mysql-test:mysql -v $(pwd)/sql:/sql mkbucc/shmig -d mysql -H 172.17.0.2 -P 3306 "$c"
 
 done
 
