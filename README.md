@@ -122,6 +122,48 @@ Everything since `-- ==== UP ====` till `-- ==== DOWN ====` will be executed whe
 
 SHMIG can generate skeleton migration for you, see `create` action.
 
+Migrations with test data
+----------
+One nice feature of Liquibase is contexts.   This can be used to
+implement different behavior based on environment; for example,
+in a development environment you can insert test data.
+
+`shmig` can support this with symbolic links.  For example, say
+your production migrations are in `prod` and test data in `test`:
+
+```
+.
+└── migrations
+    ├── prod
+    │   └── 1485643154-create_table.sql
+    └── test
+        └── 1485648520-testdata.sql
+```
+
+To load your test environment, link the prod SQL in test directory:
+
+```
+$ cd migrations/test/
+$ ln -s ../prod/1485643154-create_table.sql
+```
+
+
+```
+.
+└── migrations
+    ├── prod
+    │   └── 1485643154-create_table.sql
+    └── test
+        ├── 1485643154-create_table.sql -> ../prod/1485643154-create_table.sql
+        └── 1485648520-testdata.sql
+```
+
+When applying migrations to test, point shmig to the test directory.
+
+Since migrations are applied in order of epoch seconds in the file name,
+this works.
+
+
 Current state
 -------------
 
