@@ -25,5 +25,5 @@ for c in $COMMANDS; do
 done
 
 printf "Shutting down MySQL server ...\n"
-docker  stop  shmig-mysql-test
-docker  rm    shmig-mysql-test
+printf "stop ... " ; docker  stop  shmig-mysql-test
+printf "rm ...   " ; docker  rm    shmig-mysql-test
