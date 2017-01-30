@@ -120,9 +120,10 @@ Where options are:
           always - always use colors
       default is $COLOR
 
-  -v  show verbouse information 
+  -v  show verbose information 
+
   -V
-      shows version information
+      show version information
 
 Actions are:
   create <name>
@@ -211,6 +212,7 @@ mysql_cli(){
   [[ -n $LOGIN    ]] && args="-u $LOGIN    $args"
   [[ -n $HOST     ]] && args="-h $HOST     $args"
   [[ -n $PORT     ]] && args="-P $PORT     $args"
+  [[ -n $VERBOSE  ]] || args="--verbose $args"
   [[ -n $PASSWORD ]] && export MYSQL_PWD="$PASSWORD"
 
   if [[ $# -ne 0 ]]
