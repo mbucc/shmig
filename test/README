@@ -1,0 +1,10 @@
+These test work more often than not.
+
+Periodically, and usually when I start a testing session,
+they will crap out early on.  But if I re-run the script,
+it then runs fine to completion.
+
+I guess some race condition exposed by start/stopping 
+docker containers so quickly, but who knows.
+
+If it fails, just retry.
