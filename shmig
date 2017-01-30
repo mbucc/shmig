@@ -120,6 +120,7 @@ Where options are:
           always - always use colors
       default is $COLOR
 
+  -v  show verbouse information 
   -V
       shows version information
 
@@ -265,11 +266,12 @@ EOF
 
 postgresql_cli(){
   export PGOPTIONS="-c client_min_messages=WARNING"
-  local args="-q -X -v VERBOSITY=terse -v ON_ERROR_STOP=1 -A -t -w -d $DATABASE $ARGS"
+  local args=" -X -v VERBOSITY=terse -v ON_ERROR_STOP=1 -A -t -w -d $DATABASE $ARGS"
 
   [[ -n $LOGIN    ]] && args="-U $LOGIN    $args"
   [[ -n $HOST     ]] && args="-h $HOST     $args"
   [[ -n $PORT     ]] && args="-p $PORT     $args"
+  [[ -n $VERBOSE  ]] || args="-q $args"
   [[ -n $PASSWORD ]] && export PGPASSWORD="$PASSWORD"
 
   if [[ $# -ne 0 ]]
@@ -610,7 +612,7 @@ down(){
 # parse command line and store variables in _VAR to overwrite config values
 # later
 
-while getopts hc:t:m:d:l:H:p:P:s:a:AVC: arg
+while getopts hc:t:m:d:l:H:p:P:s:a:AVvC: arg
 do
   case $arg in
     h)   usage 0                   ;;
@@ -626,6 +628,7 @@ do
     s)   _SCHEMA_TABLE="$OPTARG"   ;;
     a)   _ARGS="$OPTARG"           ;;
     V)   version                   ;;
+    v)   VERBOSE="1"               ;;
     A)   ASK_PASSWORD="1"          ;;
     C)   _COLOR="$OPTARG"          ;;
     ?)   exit 1                    ;;
