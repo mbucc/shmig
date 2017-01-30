@@ -1,7 +1,7 @@
 #! /bin/sh -e
 # Run SQL in sqlite3 directory against SQLite3.
 
-rm -f ./sqlite3/test.db
+rm -f ./sql/test.db
 
 source common.sh
 
