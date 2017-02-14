@@ -179,6 +179,14 @@ Efficiency
 
 Because SHMIG is just a shell script it's not a speed champion. Every time a statement is executed new client process is spawned. I didn't experience much issues with speed, but if you'll have then please file an issue and maybe I'll get to that in detail.
 
+Usage with Docker
+-----------------
+Shmig can be used and configured with env vars
+```
+docker run -e PASSWORD=root -e HOST=mariadb -v $(pwd)/migrations:/sql --link mariadb:mariadb mkbucc/shmig:latest -t mysql -d db-name up
+```
+
+
 Todo
 ----
 
