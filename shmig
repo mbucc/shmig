@@ -13,9 +13,9 @@ CONFIG_EXPLICITLY_SET="0"
 ASK_PASSWORD="0"
 MIGRATIONS="./migrations"
 
-MYSQL="/usr/bin/mysql"
-PSQL="/usr/bin/psql"
-SQLITE3="/usr/bin/sqlite3"
+MYSQL=`which mysql`
+PSQL=`which psql`
+SQLITE3=`which sqlite3`
 
 UP_MARK="====  UP  ===="
 DOWN_MARK="==== DOWN ===="
