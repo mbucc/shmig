@@ -118,13 +118,13 @@ CREATE UNIQUE INDEX `users_email_uq` ON `users`(`email`);
 DROP TABLE `users`;
 ```
 
-Everything since `-- ==== UP ====` till `-- ==== DOWN ====` will be executed when migration is applied and everything since `-- ==== DOWN ====` till the end of file will be executed when migration is reverted. If migration is missing marker or contents of marker is empty then appropriate action will fail (i.e. if you're trying to revert migration that has no or empty `-- ==== DOWN ====` marker you'll get an error and script won't execute any migrations following script with error). Also note those semicolons terminating statements. They're required because you're basically typing that into your database CLI client.
+Everything between `-- ==== UP ====` till `-- ==== DOWN ====` will be executed when migration is applied and everything between `-- ==== DOWN ====` till the end of file will be executed when migration is reverted. If migration is missing marker or contents of marker is empty then appropriate action will fail (i.e. if you're trying to revert migration that has no or empty `-- ==== DOWN ====` marker you'll get an error and script won't execute any migrations following script with error). Also note those semicolons terminating statements. They're required because you're basically typing that into your database CLI client.
 
 SHMIG can generate skeleton migration for you, see `create` action.
 
 Migrations with test data
 ----------
-One nice feature of Liquibase is contexts.   This can be used to
+One nice feature of Liquibase is contexts, which are used to
 implement different behavior based on environment; for example,
 in a development environment you can insert test data.
 
@@ -140,7 +140,7 @@ your production migrations are in `prod` and test data in `test`:
         └── 1485648520-testdata.sql
 ```
 
-To load your test environment, link the prod SQL in test directory:
+To create a test environment context, link the prod SQL in test directory:
 
 ```
 $ cd migrations/test/
