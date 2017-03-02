@@ -16,6 +16,7 @@ MIGRATIONS="./migrations"
 MYSQL=`which mysql`
 PSQL=`which psql`
 SQLITE3=`which sqlite3`
+ECHO=/bin/echo
 
 UP_MARK="====  UP  ===="
 DOWN_MARK="==== DOWN ===="
@@ -326,6 +327,26 @@ EOF
 
 ##### PostgreSQL end
 
+
+##### echo
+
+echo_check(){
+  [[ -x $ECHO ]] || die "${BOLD}${LYELLOW}${exe##*[/\\]}${CLEAR} ($exe) is ${RED}not available${CLEAR}"
+}
+
+echo_cli(){
+  if [[ $# -ne 0 ]]
+  then
+    "$ECHO" $args <<< $*
+  else
+    "$ECHO" $args
+  fi
+}
+
+
+##### echo end
+
+
 ##### SQLite3
 
 sqlite3_cli(){
@@ -340,6 +361,7 @@ sqlite3_cli(){
 }
 
 sqlite3_check(){
+  [[ -x $exe ]] || die "${BOLD}${LYELLOW}${exe##*[/\\]}${CLEAR} ($exe) is ${RED}not available${CLEAR}"
   __generic_checker "$SQLITE3" \
     "select name from sqlite_master where type = 'table';" \
     "create table \`$SCHEMA_TABLE\`(version int not null primary key, migrated_at timestamp not null default (datetime(current_timestamp)));"
