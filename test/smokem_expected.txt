@@ -1,0 +1,37 @@
+
+up steps=1
+---------------
+shmig: creating migrations table: shmig_version
+shmig: applying  'create_table'	(1485643154)... done
+
+status
+---------------
+Applied migrations:
+1485643154	*now*
+
+rollback
+---------------
+shmig: reverting 'create_table'	(1485643154)... done
+
+pending
+---------------
+1485643154-create_table.sql
+1485648520-testdata.sql
+
+migrate
+---------------
+shmig: applying  'create_table'	(1485643154)... done
+shmig: applying  'testdata'	(1485648520)... done
+
+down till=1485648520
+---------------
+shmig: reverting 'testdata'	(1485648520)... done
+
+status
+---------------
+Applied migrations:
+1485643154	*now*
+
+pending
+---------------
+1485648520-testdata.sql

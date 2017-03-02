@@ -1,20 +1,33 @@
 all_tests: smoketest
 
-.PHONY: smoketest
+#------------------------------------------------------------------------------
+#
+#                              S M O K E T E S T
+#
+#  Run the shmig docker container against each backend, using same set of 
+#  commands.  SQL used in tests is in sql directory.
+#------------------------------------------------------------------------------
+.PHONY: smoketest smoke3 smokep smokem
+
 smoketest: smoke3 smokep smokem
 
-.PHONY: smoke3
 smoke3:
-	./sqlite3.sh 2>&1 | ./zapdate.sh > smoke3_actual.txt
-	diff -uw smoke_expected.txt smoke3_actual.txt
-
-.PHONY: smokep
+	./sqlite3.sh > t
+	./zapdate.sh < t > smoke3_actual.txt
+	diff -uw smoke3_expected.txt smoke3_actual.txt
 smokep:
-	./psql.sh 2>&1 | ./zapdate.sh | ./zapstartstop.sh > smokep_actual.txt
-	diff -uw smoke_expected.txt smokep_actual.txt
-
-.PHONY: smokem
+	./psql.sh > t
+	./zapdate.sh < t > t1
+	./zaphash.sh < t1 > smokep_actual.txt
+	diff -uw smokep_expected.txt smokep_actual.txt
+	@rm -f t t1
 smokem:
-	./mysql.sh 2>&1 | ./zapdate.sh | ./tab2pipe.sh | ./zapstartstop.sh > smokem_actual.txt
-	diff -uw smoke_expected.txt smokem_actual.txt
+	./mysql.sh > t
+	./zapdate.sh < t > t1
+	./zaphash.sh < t1 > smokem_actual.txt
+	diff -uw smokem_expected.txt smokem_actual.txt
+	@rm -f t t1 t2
 
+.PHONY: clean
+clean:
+	rm -f t t1 t2 t3
