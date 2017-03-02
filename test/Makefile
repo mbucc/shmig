@@ -9,7 +9,7 @@ all_tests: smoketest
 #------------------------------------------------------------------------------
 .PHONY: smoketest smoke3 smokep smokem
 
-smoketest: smoke3 smokep smokem
+smoketest: smoke3 smokep #smokem
 
 smoke3:
 	./sqlite3.sh > t

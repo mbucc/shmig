@@ -1,4 +1,4 @@
-#! /bin/sh -e
+#! /bin/sh -ex
 # Run SQL in sqlite3 directory against SQLite3.
 
 rm -f ./sql/test.db
@@ -10,6 +10,6 @@ for c in $COMMANDS; do
 
 	printf "\n%s\n---------------\n" $c
 
-	docker run -v $(pwd)/sql:/sql mkbucc/shmig -d /sql/test.db -t sqlite3 "$c"
+	../shmig -m ./sql -d ./sql/test.db -t sqlite3 "$c"
 
 done
