@@ -10,9 +10,9 @@ all_tests: smoketest
 #------------------------------------------------------------------------------
 .PHONY: smoketest
 smoketest:
-	./sqlite3.sh
-	./psql.sh
-	./mysql.sh
+	./runtests.sh sqlite3
+	./runtests.sh psql
+	./runtests.sh mysql
 
 .PHONY: clean
 clean:
