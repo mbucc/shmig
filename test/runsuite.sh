@@ -7,18 +7,25 @@ source report.sh
 
 SUITE=$1
 case $SUITE in
-	sqlite3)
+	sqlite3*)
 		E=sqlite3_stderr.out
+		rm -f ./sql/test.db
 		;;
-	mysql)
+	mysql*)
 		V=mysql:8
 		N=mysql-server
 		E=mysql_stderr.out
+		trap "printf \"error: \" >&2; [ -f $E ] && cat $E>&2 || echo \"shutting down server\"; docker stop $N ; docker rm $N" ERR
+		docker run -d -p 127.0.0.1:3306:3306 --name $N -e MYSQL_ALLOW_EMPTY_PASSWORD=True $V
+		STARTUP_TIMEOUT_IN_SECONDS=100
 		;;
-	psql)
+	psql*)
 		V=postgres:9.6-alpine
 		N=postgres-server
 		E=psql_stderr.out
+		trap "printf \"error: \" >&2; [ -f $E ] && cat $E>&2 || echo \"shutting down server\"; docker stop $N ; docker rm $N" ERR
+		docker run -d -p 127.0.0.1:5432:5432 --name $N -e POSTGRES_PASSWORD=postgres $V
+		STARTUP_TIMEOUT_IN_SECONDS=50
 		;;
 	*)
 		printf "unknown suite %s\n" $SUITE >&2
@@ -29,30 +36,9 @@ esac
 
 #-----------------------------------------------------------------------------
 #
-#                       S T A R T   U P   S E R V E R 
-# 
+#                       W A I T   F O R   S E R V E R
+#
 #-----------------------------------------------------------------------------
-
-case $SUITE in
-	mysql)
-		trap "printf \"error: \" >&2; [ -f $E ] && cat $E>&2 || echo \"shutting down server\"; docker stop $N ; docker rm $N" ERR
-		docker run -d -p 127.0.0.1:3306:3306 --name $N -e MYSQL_ALLOW_EMPTY_PASSWORD=True $V
-		STARTUP_TIMEOUT_IN_SECONDS=100
-		;;
-	psql)
-		trap "printf \"error: \" >&2; [ -f $E ] && cat $E>&2 || echo \"shutting down server\"; docker stop $N ; docker rm $N" ERR
-		docker run -d -p 127.0.0.1:5432:5432 --name $N -e POSTGRES_PASSWORD=postgres $V
-		STARTUP_TIMEOUT_IN_SECONDS=50
-		;;
-	sqlite3)
-		rm -f ./sql/test.db
-		;;
-	*)
-		#
-		# EMPTY
-		#
-		;;
-esac
 
 case $SUITE in
 	mysql|psql)
@@ -76,7 +62,7 @@ case $SUITE in
 					;;
 			esac
 		done
-		if [ $RETRIES -lt $STARTUP_TIMEOUT_IN_SECONDS ] 
+		if [ $RETRIES -lt $STARTUP_TIMEOUT_IN_SECONDS ]
 		then
 			printf " started.\n"
 		else
@@ -95,8 +81,8 @@ esac
 
 #-----------------------------------------------------------------------------
 #
-#                              R U N   T E S T S 
-# 
+#                              R U N   T E S T S
+#
 #-----------------------------------------------------------------------------
 
 report_start $SUITE
@@ -134,8 +120,8 @@ report_result $SUITE
 
 #-----------------------------------------------------------------------------
 #
-#                       S H U T   D O W N   S E R V E R 
-# 
+#                       S H U T   D O W N   S E R V E R
+#
 #-----------------------------------------------------------------------------
 
 case $SUITE in
