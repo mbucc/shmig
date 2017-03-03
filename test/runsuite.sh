@@ -41,7 +41,7 @@ esac
 #-----------------------------------------------------------------------------
 
 case $SUITE in
-	mysql|psql)
+	mysql*|psql*)
 		printf "Waiting %d seconds for %s server to start up in docker container " $STARTUP_TIMEOUT_IN_SECONDS $V
 		STARTED=0
 		RETRIES=0
@@ -50,10 +50,10 @@ case $SUITE in
 			sleep 1
 			RETRIES=$((RETRIES + 1))
 			case $SUITE in
-				mysql)
+				mysql*)
 					echo "SELECT 1" | mysql -u root -h 127.0.0.1 -P 3306 -D mysql >mysql_startup.log 2>&1 && STARTED=1
 					;;
-				psql)
+				psql*)
 					PGPASSWORD=postgres psql -h localhost -U postgres -c "SELECT 1" -d postgres > psql_startup.log 2>&1 && STARTED=1
 					;;
 				*)
@@ -125,7 +125,7 @@ report_result $SUITE
 #-----------------------------------------------------------------------------
 
 case $SUITE in
-	mysql|psql)
+	mysql*|psql*)
 		printf "Shutting down %s server ...\n" $V
 		docker  stop  $N
 		docker  rm    $N
