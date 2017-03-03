@@ -1,10 +1,30 @@
-These test work more often than not.
+Run a set of shmig commands against each backend.
 
-Periodically, and usually when I start a testing session,
-they will crap out early on.  But if I re-run the script,
-it then runs fine to completion.
+Requires:
 
-I guess some race condition exposed by start/stopping 
-docker containers so quickly, but who knows.
+	1. mysql client installed and on PATH
 
-If it fails, just retry.
+	2. psql client installed and on PATH
+
+	3. docker running
+
+Sample output:
+
+	$ make
+	./sqlite3.sh
+	sqlite3    .......... PASS
+	./psql.sh
+	ccb092f7cf2d573ddf82a3b50637ac3b6593468c403a807cd4542f1a3f36b636
+	Waiting for postgres:9.6-alpine server to start up in docker container .... started.
+	psql       .......... PASS
+	Shutting down postgres:9.6-alpine server ...
+	postgres-server
+	postgres-server
+	./mysql.sh
+	9fe1c4235f9b3a49212d34818e2ff37c7246017109e38d2aa318cbed189c7f57
+	Waiting 100 seconds for mysql:8 server to start up in docker container ..................................... started.
+	mysql      .......... PASS
+	Shutting down mysql:8 server ...
+	mysql-server
+	mysql-server
+	$

@@ -1,34 +1,79 @@
 #! /bin/sh -e
-# Run SQL in mysql directory against MySQL in a docker container.
+# Run shmig tests against MySQL server in a docker container.
 
-# XXX: Specify IP of Docker's bridge nework.
-# XXX: Don't use sleep.
+source report.sh
+
+V=mysql:8
+N=mysql-server
+E=mysql_stderr.out
 
 
-trap 'printf "error, shutting down MySQL server ...\n" >&2; docker stop shmig-mysql-test ; docker rm shmig-mysql-test' ERR
+# If an error occurs, shutdown server.
+trap "printf \"error: \" >&2; [ -f $E ] && cat $E>&2 || echo \"shutting down server\"; docker stop $N ; docker rm $N" ERR
 
-printf "Starting MySQL server container ...\n" >&2
-docker run -d --name shmig-mysql-test -e MYSQL_ALLOW_EMPTY_PASSWORD=True mysql:8
 
-trap 'docker stop shmig-mysql-test ; docker rm shmig-mysql-test' ERR
 
-# Wait for MySQL server to start.
-N=60
-printf "Waiting %d seconds for MySQL to start up ...\n" $N >&2
-sleep $N
+#-----------------------------------------------------------------------------
+#
+#                  S T A R T   U P   M Y S Q L   S E R V E R 
+# 
+#-----------------------------------------------------------------------------
 
-source common.sh
+docker run -d -p 127.0.0.1:3306:3306 --name $N -e MYSQL_ALLOW_EMPTY_PASSWORD=True $V
 
-IFS=$(printf "\n\b")
-for c in $COMMANDS; do
-
-	printf "\n%s\n---------------\n" $c
-
-	# Many of defaults from Docker file are used.
-	docker run -it --link shmig-mysql-test:mysql -v $(pwd)/sql:/sql mkbucc/shmig -d mysql -H 172.17.0.2 -P 3306 "$c"
-
+MAX_RETRIES=100
+printf "Waiting %d seconds for %s server to start up in docker container " $MAX_RETRIES $V
+STARTED=0
+RETRIES=0
+while [ $STARTED -eq 0 ] && [ $RETRIES -lt $MAX_RETRIES ] ; do
+	printf "."
+	sleep 1
+	RETRIES=$((RETRIES + 1))
+	echo "SELECT 1" | mysql -u root -h 127.0.0.1 -P 3306 -D mysql >mysql_startup.log 2>&1 && STARTED=1
 done
+if [ $RETRIES -lt $MAX_RETRIES ] 
+then
+	printf " started.\n"
+else
+	printf "error: server didn't start in %d seconds, shutting down server.\n" $MAX_RETRIES >&2
+	docker  stop  $N
+	docker  rm    $N
+	exit 1
+fi
 
-printf "Shutting down MySQL server ...\n" >&2
-printf "stop ... " >&2 ; docker  stop  shmig-mysql-test >&2
-printf "rm ...   " >&2 ; docker  rm    shmig-mysql-test >&2
+
+
+#-----------------------------------------------------------------------------
+#
+#                              R U N   T E S T S 
+# 
+#-----------------------------------------------------------------------------
+
+report_start mysql
+
+F=$(report_filename mysql)
+
+rm -f $F
+
+while IFS= read -r cmd ; do
+
+	printf "\n%s\n---------------\n" "$cmd" >> $F
+
+	../shmig -m ./sql -l root -t mysql -d mysql -H 127.0.0.1 -P 3306 $cmd >> $F 2>$E
+
+done < test_commands
+
+# XXX: If test fails, trap doesn't fire and server is not shut down.
+report_result mysql
+
+
+
+#-----------------------------------------------------------------------------
+#
+#                       S H U T   D O W N   S E R V E R 
+# 
+#-----------------------------------------------------------------------------
+
+printf "Shutting down %s server ...\n" $V
+docker  stop  $N
+docker  rm    $N

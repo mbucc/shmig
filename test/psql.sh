@@ -1,36 +1,43 @@
 #! /bin/sh -e
-# Run SQL in psql directory against PostresSQL in a docker container.
+# Run shmig tests against PostresSQL server in a docker container.
 
-# XXX: Specify IP of Docker's bridge nework when starting MySQL server container.
-# XXX: poll instead of sleep
+source report.sh
 
-trap 'printf "error, shutting down PostgreSQL server ...\n" >&2; docker stop shmig-psql-test ; docker rm shmig-psql-test' ERR
+V=postgres:9.6-alpine
+N=postgres-server
 
-printf "Starting PostgreSQL server container ...\n" >&2
-docker run -d --name shmig-psql-test -e POSTGRES_PASSWORD=postgres postgres:9.6
+trap "printf \"error, shutting down %s server ...\n\" $V; docker stop $N ; docker rm $N" ERR
 
-# Wait for PostresSQL server to start.
-N=15
-printf "Waiting %d seconds for PostresSQL to start up ...\n" $N >&2
-sleep $N
+docker run -d -p 127.0.0.1:5432:5432 --name $N -e POSTGRES_PASSWORD=postgres $V
 
-source common.sh
-
-IFS=$(printf "\n\b")
-for c in $COMMANDS; do
-
-	printf "\n%s\n---------------\n" $c
-
-	# Many of defaults from Docker file are used.
-	docker run -it --link shmig-psql-test:psql -v $(pwd)/sql:/sql mkbucc/shmig -t postgresql -d postgres -l postgres -p postgres -H 172.17.0.2 -P 5432 "$c"
-
-	# There is some race condition in running docker in a tight loop like this.
-	# The script fails regularly but intermittenly.  Try a sleep to at least
-	# make behavior consistent.
+printf "Waiting for %s server to start up in docker container " $V
+STARTED=0
+RETRIES=0
+while [ $STARTED -eq 0 ] && [ $RETRIES -lt 100 ] ; do
+	printf "."
 	sleep 1
-
+	RETRIES=$((RETRIES + 1))
+	PGPASSWORD=postgres psql -h localhost -U postgres -c "SELECT 1" -d postgres > psql_startup.log 2>&1 && STARTED=1
 done
+printf " started.\n"
 
-printf "Shutting down PostreSQL server ...\n" >&2
-printf "stop ... " >&2 ; docker  stop  shmig-psql-test >&2
-printf "rm ...   " >&2 ; docker  rm    shmig-psql-test >&2
+report_start psql
+
+F=$(report_filename psql)
+
+rm -f $F
+
+while IFS= read -r cmd ; do
+
+	printf "\n%s\n---------------\n" "$cmd" >> $F
+
+	../shmig -m ./sql -t postgresql -d postgres -l postgres -p postgres -H localhost -P 5432 $cmd >> $F 2>psql_stderr.out
+
+done < test_commands
+
+# XXX: If test fails, server is not shut down.
+report_result psql
+
+printf "Shutting down %s server ...\n" $V
+docker  stop  $N
+docker  rm    $N

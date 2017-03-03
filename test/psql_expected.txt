@@ -1,8 +1,6 @@
 
 up steps=1
 ---------------
-shmig: creating migrations table: shmig_version
-shmig: applying  'create_table'	(1485643154)... done
 
 status
 ---------------
@@ -11,7 +9,6 @@ Applied migrations:
 
 rollback
 ---------------
-shmig: reverting 'create_table'	(1485643154)... done
 
 pending
 ---------------
@@ -20,12 +17,9 @@ pending
 
 migrate
 ---------------
-shmig: applying  'create_table'	(1485643154)... done
-shmig: applying  'testdata'	(1485648520)... done
 
 down till=1485648520
 ---------------
-shmig: reverting 'testdata'	(1485648520)... done
 
 status
 ---------------

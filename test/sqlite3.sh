@@ -1,15 +1,22 @@
-#! /bin/sh -ex
-# Run SQL in sqlite3 directory against SQLite3.
+#! /bin/sh -e
+# Run shmig test SQL against SQLite3.
 
 rm -f ./sql/test.db
 
-source common.sh
+source report.sh
 
-IFS=$(printf "\n\b")
-for c in $COMMANDS; do
+report_start sqlite3
 
-	printf "\n%s\n---------------\n" $c
+F=$(report_filename sqlite3)
 
-	../shmig -m ./sql -d ./sql/test.db -t sqlite3 "$c"
+rm -f $F
 
-done
+while IFS= read -r cmd ; do
+
+	printf "\n%s\n---------------\n" "$cmd" >> $F
+
+	../shmig -m ./sql -d ./sql/test.db -t sqlite3 $cmd >> $F 2>sqlite3_stderr.out
+
+done < test_commands
+
+report_result sqlite3

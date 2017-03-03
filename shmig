@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash
 
 
 # SHMIG. Database migration tool in BASH.
@@ -213,7 +213,7 @@ mysql_cli(){
   [[ -n $LOGIN    ]] && args="-u $LOGIN    $args"
   [[ -n $HOST     ]] && args="-h $HOST     $args"
   [[ -n $PORT     ]] && args="-P $PORT     $args"
-  [[ -n $VERBOSE  ]] || args="--verbose $args"
+  [[ -n $VERBOSE  ]] && args="--verbose $args"
   [[ -n $PASSWORD ]] && export MYSQL_PWD="$PASSWORD"
 
   if [[ $# -ne 0 ]]
