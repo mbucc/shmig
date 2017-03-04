@@ -1,2 +1,3 @@
 migrations/*
 test/sql/test.db
+*.swp
