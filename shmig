@@ -167,21 +167,27 @@ __generic_checker(){
 
   [[ -x $exe ]] || die "${BOLD}${LYELLOW}${exe##*[/\\]}${CLEAR} ($exe) is ${RED}not available${CLEAR}"
 
-  "${TYPE}_cli" "$show" | grep -F -qx "$SCHEMA_TABLE"
-
-  local status=("${PIPESTATUS[@]}")
-
-  [[ ${status[0]} -ne 0 ]] && return 1
-
-  if [[ ${status[1]} -ne 0 ]]
+  TMPF=$(((RANDOM<<15)|RANDOM)).$$.out
+  rm -f $TMPF
+  "${TYPE}_cli" "$show" > $TMPF
+  if [ $? -ne 0 ]
   then
+    rm -f $TMPF
+    return 1
+  fi
+  grep -F -qx "$SCHEMA_TABLE" $TMPF
+  local rc=$?
+  rm -f $TMPF
+
+  if [ $rc -eq 0 ]
+  then
+    true
+  else
     warn "${LBLUE}creating migrations table: ${LGREEN}$SCHEMA_TABLE${CLEAR}"
     "${TYPE}_cli" "$create"
-  else
-    true
   fi
 
-  return "$?"
+  return "$rc"
 }
 
 __generic_previous_versions(){
@@ -404,7 +410,7 @@ migration_name(){
       name = $0;
       exit;
     }
-    
+
     END{
       print name ? name : FILENAME;
     }
