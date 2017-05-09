@@ -13,16 +13,16 @@ CONFIG_EXPLICITLY_SET="0"
 ASK_PASSWORD="0"
 MIGRATIONS="./migrations"
 
-MYSQL=`which mysql`
-PSQL=`which psql`
-SQLITE3=`which sqlite3`
+MYSQL="/usr/bin/mysql"
+PSQL="/usr/bin/psql"
+SQLITE3="/usr/bin/sqlite3"
 
 UP_MARK="====  UP  ===="
 DOWN_MARK="==== DOWN ===="
 
 VERSION="Version 1.1.0"
 
-COLOR="never"
+COLOR="auto"
 
 # until parsing options and figuring out color policy
 # we assume color output is not used
@@ -53,11 +53,17 @@ warn(){
 die(){
   cat >&2 <<EOF
 Usage: $ME [options] <action> [arguments...]
-Common options:
-  -d <database name>
-  -t [mysql|postgresql|sqlite3]
+Where options include are:
   -h
-and action is one of create, up, down, rollback, status, redo, and pending.
+      show a more detailed usage
+
+  -C COLOR
+      set color policy. possible options:
+          auto - default. will use colors if possible
+          never - do not use colors
+          always - always use colors
+
+and action is one of create, up, down, rollback, redo, and pending
 
 EOF
   [[ $# -gt 0 ]] && warn "$@"
@@ -120,7 +126,6 @@ Where options are:
           always - always use colors
       default is $COLOR
 
-  -v  show verbouse information 
   -V
       shows version information
 
@@ -146,9 +151,6 @@ Actions are:
   pending
       show migrations that are not applied
 
-  status
-      show which migrations were applied and at which time in UTC
-
 EOF
 
   exit "$1"
@@ -165,28 +167,21 @@ __generic_checker(){
 
   [[ -x $exe ]] || die "${BOLD}${LYELLOW}${exe##*[/\\]}${CLEAR} ($exe) is ${RED}not available${CLEAR}"
 
-  TMPF=$(((RANDOM<<15)|RANDOM)).$$.out
-  rm -f $TMPF
-  "${TYPE}_cli" "$show" > $TMPF
-  if [ $? -ne 0 ]
-  then
-    rm -f $TMPF
-    return 1
-  fi
-  grep -F -qx "$SCHEMA_TABLE" $TMPF
-  local rc=$?
-  rm -f $TMPF
+  "${TYPE}_cli" "$show" | grep -F -qx "$SCHEMA_TABLE"
 
-  if [ $rc -eq 0 ]
+  local status=("${PIPESTATUS[@]}")
+
+  [[ ${status[0]} -ne 0 ]] && return 1
+
+  if [[ ${status[1]} -ne 0 ]]
   then
-    true
-  else
     warn "${LBLUE}creating migrations table: ${LGREEN}$SCHEMA_TABLE${CLEAR}"
     "${TYPE}_cli" "$create"
-    rc=$?
+  else
+    true
   fi
 
-  return "$rc"
+  return "$?"
 }
 
 __generic_previous_versions(){
@@ -202,11 +197,6 @@ __generic_bump_version_sql(){
 
 __generic_drop_version_sql(){
   echo "delete from $1$SCHEMA_TABLE$1 where version = $2;"
-}
-
-__generic_status(){
-  local sql="select $2 from $1$SCHEMA_TABLE$1 order by version desc"
-  "${TYPE}_cli" "$sql;" || exit 1
 }
 
 ### Generic implementations end
@@ -230,7 +220,7 @@ mysql_cli(){
 
 mysql_check(){
   __generic_checker "$MYSQL" "show tables;" \
-    "create table \`$SCHEMA_TABLE\`(version int not null primary key, migrated_at timestamp not null default current_timestamp);"
+    "create table \`$SCHEMA_TABLE\`(version int not null primary key);"
 }
 
 mysql_previous_versions(){
@@ -244,10 +234,6 @@ mysql_bump_version_sql(){
 
 mysql_drop_version_sql(){
   __generic_drop_version_sql '`' "$1"
-}
-
-mysql_status(){
-  __generic_status '`' "version, CONVERT_TZ(\`migrated_at\`, @@session.time_zone, '+00:00') AS \`utc_datetime\`"
 }
 
 mysql_up_text() {
@@ -273,12 +259,11 @@ EOF
 
 postgresql_cli(){
   export PGOPTIONS="-c client_min_messages=WARNING"
-  local args=" -X -v VERBOSITY=terse -v ON_ERROR_STOP=1 -A -t -w -d $DATABASE $ARGS"
+  local args="-q -X -v VERBOSITY=terse -v ON_ERROR_STOP=1 -A -t -w -d $DATABASE $ARGS"
 
   [[ -n $LOGIN    ]] && args="-U $LOGIN    $args"
   [[ -n $HOST     ]] && args="-h $HOST     $args"
   [[ -n $PORT     ]] && args="-p $PORT     $args"
-  [[ -n $VERBOSE  ]] || args="-q $args"
   [[ -n $PASSWORD ]] && export PGPASSWORD="$PASSWORD"
 
   if [[ $# -ne 0 ]]
@@ -292,7 +277,7 @@ postgresql_cli(){
 postgresql_check(){
   __generic_checker "$PSQL" \
     "select table_name from information_schema.tables where table_schema = 'public';" \
-    "create table \"$SCHEMA_TABLE\"(version int not null primary key, migrated_at timestamp not null default (now() at time zone 'utc'));"
+    "create table \"$SCHEMA_TABLE\"(version int not null primary key);"
 }
 
 postgresql_previous_versions(){
@@ -306,10 +291,6 @@ postgresql_bump_version_sql(){
 
 postgresql_drop_version_sql(){
   __generic_drop_version_sql '"' "$1"
-}
-
-postgresql_status(){
-  __generic_status '"' '*'
 }
 
 postgresql_up_text() {
@@ -347,7 +328,7 @@ sqlite3_cli(){
 sqlite3_check(){
   __generic_checker "$SQLITE3" \
     "select name from sqlite_master where type = 'table';" \
-    "create table \`$SCHEMA_TABLE\`(version int not null primary key, migrated_at timestamp not null default (datetime(current_timestamp)));"
+    "create table \`$SCHEMA_TABLE\`(version int not null primary key);"
 }
 
 sqlite3_previous_versions(){
@@ -361,10 +342,6 @@ sqlite3_bump_version_sql(){
 
 sqlite3_drop_version_sql(){
   __generic_drop_version_sql '`' "$1"
-}
-
-sqlite3_status(){
-  __generic_status '`' '*'
 }
 
 sqlite3_up_text() {
@@ -390,7 +367,7 @@ EOF
 
 # a wrapper for find that looks for migration files
 find_migrations(){
-  find -L "$MIGRATIONS" -maxdepth 1 -mindepth 1 -type f "$@"
+  find "$MIGRATIONS" -maxdepth 1 -mindepth 1 -type f "$@"
 }
 
 # extract version from migration file name
@@ -407,7 +384,7 @@ migration_name(){
       name = $0;
       exit;
     }
-
+    
     END{
       print name ? name : FILENAME;
     }
@@ -524,12 +501,6 @@ pending(){
   done
 }
 
-# Get the list of applied migrations
-status(){
-  echo "Applied migrations:"
-  "${TYPE}_status"
-}
-
 # checks if given argument is numeric or empty
 is_numeric(){
   echo "$1" | grep -E -qi '^[0-9]*$'
@@ -619,7 +590,7 @@ down(){
 # parse command line and store variables in _VAR to overwrite config values
 # later
 
-while getopts hc:t:m:d:l:H:p:P:s:a:AVvC: arg
+while getopts hc:t:m:d:l:H:p:P:s:a:AVC: arg
 do
   case $arg in
     h)   usage 0                   ;;
@@ -635,7 +606,6 @@ do
     s)   _SCHEMA_TABLE="$OPTARG"   ;;
     a)   _ARGS="$OPTARG"           ;;
     V)   version                   ;;
-    v)   VERBOSE="1"               ;;
     A)   ASK_PASSWORD="1"          ;;
     C)   _COLOR="$OPTARG"          ;;
     ?)   exit 1                    ;;
@@ -750,9 +720,6 @@ case "$ACTION" in
     ;;
   pending)
     pending "$@"
-    ;;
-  status)
-    status "$@"
     ;;
   *)
     die "${LRED}unknown action:${CLEAR} $ACTION"
