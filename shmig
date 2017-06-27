@@ -162,7 +162,7 @@ __generic_checker(){
   local show="$2"
   local create="$3"
 
-  [[ -x $exe ]] || die "${BOLD}${LYELLOW}${exe##*[/\\]}${CLEAR} ($exe) is ${RED}not available${CLEAR}"
+  [[ -x $exe ]] || die "${BOLD}${LYELLOW}${exe##*[/\\]}${CLEAR} ($exe) is ${RED}not available. Ensure that the ${TYPE} client is installed${CLEAR}"
 
   TMPF=$(((RANDOM<<15)|RANDOM)).$$.out
   rm -f $TMPF
