@@ -723,7 +723,7 @@ shift
 [[ $(type -t "${TYPE}_check") = "function" ]] || die "${LRED}unknown database type:${CLEAR} $TYPE"
 
 # if database-specifc checker fails then bail out
-"${TYPE}_check" || exit 1
+[[ $ACTION == "create" ]] || "${TYPE}_check" || exit 1
 
 case "$ACTION" in
   create)
