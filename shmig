@@ -182,7 +182,6 @@ __generic_checker(){
   else
     warn "${LBLUE}creating migrations table: ${LGREEN}$SCHEMA_TABLE${CLEAR}"
     "${TYPE}_cli" "$create"
-    rc=$?
   fi
 
   return "$rc"
