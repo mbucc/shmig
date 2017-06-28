@@ -1,6 +1,5 @@
 #!/bin/bash
 
-
 # SHMIG. Database migration tool in BASH.
 # Copyright 2013 naquad <naquad@gmail.com>
 # Copyright 2014 mbucciarelli <mkbucc@gmail.com>
@@ -121,10 +120,8 @@ Where options are:
           always - always use colors
       default is $COLOR
 
-  -v  show verbose information 
-
   -V
-      show version information
+      shows version information
 
 Actions are:
   create <name>
@@ -185,6 +182,7 @@ __generic_checker(){
   else
     warn "${LBLUE}creating migrations table: ${LGREEN}$SCHEMA_TABLE${CLEAR}"
     "${TYPE}_cli" "$create"
+    rc=$?
   fi
 
   return "$rc"
@@ -219,7 +217,6 @@ mysql_cli(){
   [[ -n $LOGIN    ]] && args="-u $LOGIN    $args"
   [[ -n $HOST     ]] && args="-h $HOST     $args"
   [[ -n $PORT     ]] && args="-P $PORT     $args"
-  [[ -n $VERBOSE  ]] && args="--verbose $args"
   [[ -n $PASSWORD ]] && export MYSQL_PWD="$PASSWORD"
 
   if [[ $# -ne 0 ]]
@@ -275,12 +272,11 @@ EOF
 
 postgresql_cli(){
   export PGOPTIONS="-c client_min_messages=WARNING"
-  local args=" -X -v VERBOSITY=terse -v ON_ERROR_STOP=1 -A -t -w -d $DATABASE $ARGS"
+  local args="-q -X -v VERBOSITY=terse -v ON_ERROR_STOP=1 -A -t -w -d $DATABASE $ARGS"
 
   [[ -n $LOGIN    ]] && args="-U $LOGIN    $args"
   [[ -n $HOST     ]] && args="-h $HOST     $args"
   [[ -n $PORT     ]] && args="-p $PORT     $args"
-  [[ -n $VERBOSE  ]] || args="-q $args"
   [[ -n $PASSWORD ]] && export PGPASSWORD="$PASSWORD"
 
   if [[ $# -ne 0 ]]
@@ -332,7 +328,6 @@ EOF
 }
 
 ##### PostgreSQL end
-
 
 ##### SQLite3
 
@@ -622,7 +617,7 @@ down(){
 # parse command line and store variables in _VAR to overwrite config values
 # later
 
-while getopts hc:t:m:d:l:H:p:P:s:a:AVvC: arg
+while getopts hc:t:m:d:l:H:p:P:s:a:AVC: arg
 do
   case $arg in
     h)   usage 0                   ;;
@@ -638,7 +633,6 @@ do
     s)   _SCHEMA_TABLE="$OPTARG"   ;;
     a)   _ARGS="$OPTARG"           ;;
     V)   version                   ;;
-    v)   VERBOSE="1"               ;;
     A)   ASK_PASSWORD="1"          ;;
     C)   _COLOR="$OPTARG"          ;;
     ?)   exit 1                    ;;
