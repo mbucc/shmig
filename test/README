@@ -11,20 +11,14 @@ Requires:
 Sample output:
 
 	$ make
-	./sqlite3.sh
+	./runsuite.sh sqlite3
 	sqlite3    .......... PASS
-	./psql.sh
-	ccb092f7cf2d573ddf82a3b50637ac3b6593468c403a807cd4542f1a3f36b636
-	Waiting for postgres:9.6-alpine server to start up in docker container .... started.
+	./runsuite.sh psql
+	0723a197df96241b7e1987546269964b5cc2bed13434f93599c7567472216361
+	Waiting up to 50 seconds for postgres:9.6-alpine server to start up in docker container .... started.
 	psql       .......... PASS
-	Shutting down postgres:9.6-alpine server ...
-	postgres-server
-	postgres-server
-	./mysql.sh
-	9fe1c4235f9b3a49212d34818e2ff37c7246017109e38d2aa318cbed189c7f57
-	Waiting 100 seconds for mysql:8 server to start up in docker container ..................................... started.
+	./runsuite.sh mysql
+	5c44be05ef0e99234c4c2d684a11a34125c66434b50deb5127fa127a9bcd5940
+	Waiting up to 100 seconds for mysql:8 server to start up in docker container .................................. started.
 	mysql      .......... PASS
-	Shutting down mysql:8 server ...
-	mysql-server
-	mysql-server
-	$
+	$ 

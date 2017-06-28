@@ -7,7 +7,12 @@ function report_filename() {
 }
 
 function report_result() {
-	./zapdate.sh < $1_tmp.txt > $1_actual.txt
+	#
+	#	Convert any dates in shmig output to the string "*now*"
+	#	so expected matches actual output.
+	#
+	
+	sed 's/20..-[012].-[0123]. ..:..:..\(\.[0-9]*\)*/*now*/' $1_tmp.txt > $1_actual.txt
 	if diff -uw $1_expected.txt $1_actual.txt >/dev/null
 	then
 		printf "PASS\n" $1

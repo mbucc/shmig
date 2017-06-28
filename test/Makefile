@@ -2,9 +2,11 @@
 #
 #                                  T E S T
 #
-#  Run the shmig script in parent directory against each backend, using same 
-#  set of commands, stored in test_commands file.  The migrations directory
-#  holding the SQL for the tests is the in sql subdirectory.
+#	Run the shmig script in parent directory against each backend.
+#
+#	The file test_commands contains the sequence of shmig commands
+#	we run against each backend.
+#
 #------------------------------------------------------------------------------
 .PHONY: test
 test:
