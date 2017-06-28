@@ -5,7 +5,6 @@ up steps=1
 status
 ---------------
 Applied migrations:
-1485643154	*now*
 
 rollback
 ---------------
