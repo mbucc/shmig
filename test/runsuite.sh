@@ -11,7 +11,7 @@ source report.sh
 
 DB_PORT=22000
 
-function server_shutdown() {
+function stop_docker() {
 	docker  stop  $1 >/dev/null 2>&1
 	docker  rm    $1 >/dev/null 2>&1
 }
@@ -27,7 +27,7 @@ case $DB in
 		V=mysql:8
 		N=mysql-server
 		E=mysql_stderr.out
-		server_shutdown $N
+		stop_docker $N
 		docker run -l error -d -p 127.0.0.1:$DB_PORT:3306 --name $N \
 				-e MYSQL_ALLOW_EMPTY_PASSWORD=True $V
 		if [ $? -ne 0 ] 
@@ -41,7 +41,7 @@ case $DB in
 		V=postgres:9.6-alpine
 		N=postgres-server
 		E=psql_stderr.out
-		server_shutdown $N
+		stop_docker $N
 		docker run -d -l error -p 127.0.0.1:$DB_PORT:5432  --name $N -e POSTGRES_PASSWORD=postgres $V
 		if [ $? -ne 0 ] 
 		then
@@ -152,7 +152,7 @@ done < test_commands
 
 case $DB in
 	mysql | psql)
-		server_shutdown $N
+		stop_docker $N
 		;;
 	*)
 		#	EMPTY
