@@ -1,7 +1,6 @@
 #! /bin/sh
 # Run shmig tests against a database server.
 
-source report.sh
 
 [ "x$1" = "x" ] && printf "usage: %s <testsuite>\n" $(basename $0) >&2 && exit 1
 
@@ -117,10 +116,9 @@ esac
 #
 #-----------------------------------------------------------------------------
 
-report_start $DB
+printf "%-10s .......... " $DB
 
-F=$(report_filename $DB)
-
+F=1.out
 rm -f $F
 rm -f *_stderr.out
 
@@ -160,5 +158,22 @@ case $DB in
 esac
 
 
+#
+#		Replace time stamps with the string "*now*" and change tabs to '|'
+#		in MySQL output.
+#
 
-report_result $DB
+sed 's/20..-[012].-[0123]. ..:..:..\(\.[0-9]*\)*/*now*/' $F | sed 's/	/|/g' > stdout.actual
+
+
+#
+#		Use diff to get test result.
+#
+
+if diff -uw stdout.expected stdout.actual >/dev/null
+then
+	printf "PASS\n" $1
+else
+	printf "FAIL (diff below)\n" $1
+	diff -uw stdout.expected stdout.actual
+fi

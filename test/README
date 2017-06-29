@@ -1,12 +1,16 @@
 Run a set of shmig commands against each backend.
 
+Starts up MySQL and PostgreSql databases in a Docker container.
+
 Requires:
 
-	1. mysql client installed and on PATH
+	1. sqlite3 is installed
 
-	2. psql client installed and on PATH
+	2. mysql client installed and on PATH
 
-	3. docker running
+	3. psql client installed and on PATH
+
+	4. Docker running
 
 Sample output:
 

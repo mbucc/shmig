@@ -17,6 +17,7 @@ test:
 .PHONY: clean
 clean:
 	rm -f *_stderr.out
-	rm -f *_actual.txt
+	rm -f 1.out
+	rm -f stdout.actual
 	rm -f *startup.log
 	rm -f *_tmp.txt
