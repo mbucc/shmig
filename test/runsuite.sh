@@ -19,13 +19,11 @@ function stop_docker() {
 DB=$1
 case $DB in
 	sqlite3*)
-		E=sqlite3_stderr.out
 		rm -f ./sql/test.db
 		;;
 	mysql*)
 		V=mysql:8
 		N=mysql-server
-		E=mysql_stderr.out
 		stop_docker $N
 		docker run -l error -d -p 127.0.0.1:$DB_PORT:3306 --name $N \
 				-e MYSQL_ALLOW_EMPTY_PASSWORD=True $V
@@ -39,7 +37,6 @@ case $DB in
 	psql*)
 		V=postgres:9.6-alpine
 		N=postgres-server
-		E=psql_stderr.out
 		stop_docker $N
 		docker run -d -l error -p 127.0.0.1:$DB_PORT:5432  --name $N -e POSTGRES_PASSWORD=postgres $V
 		if [ $? -ne 0 ] 
@@ -116,11 +113,11 @@ esac
 #
 #-----------------------------------------------------------------------------
 
-printf "%-10s .......... " $DB
+echo $DB
 
 F=1.out
-rm -f $F
-rm -f *_stderr.out
+E=2.out
+rm -f $F $E
 
 while IFS= read -r cmd ; do
 
@@ -159,21 +156,36 @@ esac
 
 
 #
-#		Replace time stamps with the string "*now*" and change tabs to '|'
-#		in MySQL output.
+#		Replace time stamps with the string "*now*".
+#
+#               Also, change tabs to '|' in MySQL output so we can
+#		use the same expected files for each database.
 #
 
-sed 's/20..-[012].-[0123]. ..:..:..\(\.[0-9]*\)*/*now*/' $F | sed 's/	/|/g' > stdout.actual
+sed 's/20..-[012].-[0123]. ..:..:..\(\.[0-9]*\)*/*now*/' $F \
+		| sed 's/	/|/g' \
+		> stdout.actual
+
+mv $E stderr.actual
+
 
 
 #
-#		Use diff to get test result.
+#		Verify stdout and stderr are as expected.
 #
 
 if diff -uw stdout.expected stdout.actual >/dev/null
 then
-	printf "PASS\n" $1
+	printf "		stdout: PASS\n" $1
 else
-	printf "FAIL (diff below)\n" $1
+	printf "		stdout: FAIL\n" $1
 	diff -uw stdout.expected stdout.actual
+fi
+
+if diff -uw stderr.expected stderr.actual >/dev/null
+then
+	printf "		stderr: PASS\n" $1
+else
+	printf "		stderr: FAIL\n" $1
+	diff -uw stderr.expected stderr.actual
 fi
