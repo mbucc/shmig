@@ -10,8 +10,8 @@ containers currently used for testing are:
 	mysql:8
 
 The script will only run the tests for the clients you have installed;
-for example, if you don't have mysql client installed the tests
-won't bother to start a MySql docker container.
+for example, if you don't have mysql client installed, the test
+script won't bother to start a MySql docker container.
 
 When you have all clients installed and all the tests pass, this
 is what it looks like:
