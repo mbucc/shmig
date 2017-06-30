@@ -1,0 +1,31 @@
+
+up steps=1
+---------------
+
+status
+---------------
+Applied migrations:
+1485643154|*now*
+
+rollback
+---------------
+
+pending
+---------------
+1485643154-create_table.sql
+1485648520-testdata.sql
+
+migrate
+---------------
+
+down till=1485648520
+---------------
+
+status
+---------------
+Applied migrations:
+1485643154|*now*
+
+pending
+---------------
+1485648520-testdata.sql

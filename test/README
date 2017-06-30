@@ -1,0 +1,32 @@
+Run a set of shmig commands against each backend (Sqlite3, MySQL
+and PostgreSql) and verify that stdout and stderr are as expected.
+
+Tests MySQL and PostgreSql by starting a Docker container, so to
+test those clients you should have Docker running.  The server
+containers currently used for testing are:
+
+	postgres:9.6-alpine
+	
+	mysql:8
+
+The script will only run the tests for the clients you have installed;
+for example, if you don't have mysql client installed, the test
+script won't bother to start a MySql docker container.
+
+When you have all clients installed and all the tests pass, this
+is what it looks like:
+
+
+$ make
+./runsuite.sh sqlite3
+		stdout: PASS
+		stderr: PASS
+./runsuite.sh psql
+		waiting for container postgres:9.6-alpine to start .... started.
+		stdout: PASS
+		stderr: PASS
+./runsuite.sh mysql
+		waiting for container mysql:8 to start ................................... started.
+		stdout: PASS
+		stderr: PASS
+$ 

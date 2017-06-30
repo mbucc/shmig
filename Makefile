@@ -6,3 +6,7 @@ install: ${PREFIX}/bin/shmig
 
 ${PREFIX}/bin/shmig: shmig
 	cp $? $@
+
+.PHONY: test
+test:
+	(cd test ; make)

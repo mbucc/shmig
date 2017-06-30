@@ -1,2 +1,4 @@
 migrations/*
 test/sql/test.db
+*.swp
+acme.dump
