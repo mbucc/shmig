@@ -1,28 +1,31 @@
-Run a set of shmig commands against each backend.
+Run a set of shmig commands against each backend (Sqlite3, MySQL
+and PostgreSql) and verify that stdout and stderr is as expected.
 
-Starts up MySQL and PostgreSql databases in a Docker container.
+Tests MySQL and PostgreSql by starting a Docker container, so to
+test those clients you should  have Docker running.  The server
+versions currently tested against are:
 
-Requires:
+	postgres:9.6-alpine
+	
+	mysql:8
 
-	1. sqlite3 is installed
+The script will only run the tests for the clients you have installed;
+for example, if you don't have mysql installed it start a MySql
+docker container.
 
-	2. mysql client installed and on PATH
+When all tests pass, this is what it looks like:
 
-	3. psql client installed and on PATH
 
-	4. Docker running
-
-Sample output:
-
-	$ make
-	./runsuite.sh sqlite3
-	sqlite3    .......... PASS
-	./runsuite.sh psql
-	0723a197df96241b7e1987546269964b5cc2bed13434f93599c7567472216361
-	Waiting up to 50 seconds for postgres:9.6-alpine server to start up in docker container .... started.
-	psql       .......... PASS
-	./runsuite.sh mysql
-	5c44be05ef0e99234c4c2d684a11a34125c66434b50deb5127fa127a9bcd5940
-	Waiting up to 100 seconds for mysql:8 server to start up in docker container .................................. started.
-	mysql      .......... PASS
-	$ 
+$ make
+./runsuite.sh sqlite3
+		stdout: PASS
+		stderr: PASS
+./runsuite.sh psql
+		waiting for container postgres:9.6-alpine to start .... started.
+		stdout: PASS
+		stderr: PASS
+./runsuite.sh mysql
+		waiting for container mysql:8 to start ................................... started.
+		stdout: PASS
+		stderr: PASS
+$ 

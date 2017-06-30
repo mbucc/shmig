@@ -1,4 +1,5 @@
-*_stderr.out
-*_actual.txt
-*startup.log
-*_tmp.txt
+startup.log
+1.out
+2.out
+stdout.actual
+stderr.actual

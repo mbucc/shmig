@@ -1,14 +1,30 @@
 #! /bin/sh
 # Run shmig tests against a database server.
 
-
 [ "x$1" = "x" ] && printf "usage: %s <testsuite>\n" $(basename $0) >&2 && exit 1
 
 #
-#		localhost port that the DB running in Docker listens on.
+#		If no client, exit with a zero so we try other clients.
+#
+
+if ! which $1 > /dev/null
+then
+	printf "no %s client not found, skipping tests\n" $1
+	exit 0
+fi
+
+
+
+#
+#		localhost port that the Docker database listens on.
 #
 
 DB_PORT=22000
+
+
+
+
+
 
 function stop_docker() {
 	docker  stop  $1 >/dev/null 2>&1
@@ -25,8 +41,9 @@ case $DB in
 		V=mysql:8
 		N=mysql-server
 		stop_docker $N
-		docker run -l error -d -p 127.0.0.1:$DB_PORT:3306 --name $N \
-				-e MYSQL_ALLOW_EMPTY_PASSWORD=True $V
+		docker run -l info -d -p 127.0.0.1:$DB_PORT:3306 --name $N \
+				-e MYSQL_ALLOW_EMPTY_PASSWORD=True $V \
+				>startup.log 2>&1
 		if [ $? -ne 0 ] 
 		then
 			echo "error: failed to start MySQL in Docker"
@@ -38,7 +55,9 @@ case $DB in
 		V=postgres:9.6-alpine
 		N=postgres-server
 		stop_docker $N
-		docker run -d -l error -p 127.0.0.1:$DB_PORT:5432  --name $N -e POSTGRES_PASSWORD=postgres $V
+		docker run -d -l info -p 127.0.0.1:$DB_PORT:5432  \
+				--name $N -e POSTGRES_PASSWORD=postgres $V \
+				>startup.log 2>&1
 		if [ $? -ne 0 ] 
 		then
 			echo "error: failed to start PostgreSql in Docker"
@@ -61,9 +80,7 @@ esac
 
 case $DB in
 	mysql*|psql*)
-		printf "Waiting up to %d seconds for %s server to start up in docker container " \
-				$STARTUP_TIMEOUT_IN_SECONDS \
-				$V
+		printf "		waiting for container %s to start " $V
 		STARTED=0
 		RETRIES=0
 		while [ $STARTED -eq 0 ] && [ $RETRIES -lt $STARTUP_TIMEOUT_IN_SECONDS ] ; do
@@ -73,13 +90,13 @@ case $DB in
 			case $DB in
 				mysql*)
 					echo "SELECT 1" | mysql -u root -h 127.0.0.1 -P $DB_PORT  -D mysql \
-							>mysql_startup.log 2>&1 \
+							>>startup.log 2>&1 \
 							&& STARTED=1
 					;;
 				psql*)
 					PGPASSWORD=postgres psql -h 127.0.0.1 -U postgres \
 							-c "SELECT 1" -d postgres -p $DB_PORT \
-							> psql_startup.log 2>&1 \
+							>> startup.log 2>&1 \
 							&& STARTED=1
 					;;
 				*)
@@ -112,8 +129,6 @@ esac
 #                              R U N   T E S T S
 #
 #-----------------------------------------------------------------------------
-
-echo $DB
 
 F=1.out
 E=2.out

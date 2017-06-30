@@ -1,0 +1,6 @@
+shmig: creating migrations table: shmig_version
+shmig: applying  'create_table'	(1485643154)... done
+shmig: reverting 'create_table'	(1485643154)... done
+shmig: applying  'create_table'	(1485643154)... done
+shmig: applying  'testdata'	(1485648520)... done
+shmig: reverting 'testdata'	(1485648520)... done

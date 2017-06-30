@@ -18,4 +18,4 @@ test:
 clean:
 	rm -f 1.out 2.out
 	rm -f stdout.actual stderr.actual
-	rm -f *startup.log
+	rm -f startup.log
