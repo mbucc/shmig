@@ -1,19 +1,20 @@
 Run a set of shmig commands against each backend (Sqlite3, MySQL
-and PostgreSql) and verify that stdout and stderr is as expected.
+and PostgreSql) and verify that stdout and stderr are as expected.
 
 Tests MySQL and PostgreSql by starting a Docker container, so to
-test those clients you should  have Docker running.  The server
-versions currently tested against are:
+test those clients you should have Docker running.  The server
+containers currently used for testing are:
 
 	postgres:9.6-alpine
 	
 	mysql:8
 
 The script will only run the tests for the clients you have installed;
-for example, if you don't have mysql installed it start a MySql
-docker container.
+for example, if you don't have mysql client installed the tests
+won't bother to start a MySql docker container.
 
-When all tests pass, this is what it looks like:
+When you have all clients installed and all the tests pass, this
+is what it looks like:
 
 
 $ make
