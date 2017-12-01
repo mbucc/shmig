@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # SHMIG. Database migration tool in BASH.
 # Copyright 2013 naquad <naquad@gmail.com>
