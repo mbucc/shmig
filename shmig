@@ -95,7 +95,7 @@ Where options are:
   -l LOGIN
       set database user name to connect as (not used for sqlite3)
 
-  -H LOGIN
+  -H HOST
       set database host to connect to (not used for sqlite3)
 
   -p PASSWORD
