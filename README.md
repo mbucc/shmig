@@ -75,9 +75,17 @@ Usage
 SHMIG tries to read configuration from the configuration file
 `shmig.conf` in the current working directory.  A sample configuration
 file is [`shmig.conf.example`](https://github.com/naquad/shmig/blob/master/shmig.conf.example).
+
+You can also provide an optional config override file by creating the file `shmig.local.conf`.
+This allows you to provide a default configuration which is version-controlled with your project,
+then specify a non-version-controlled local config file that you can use to provide
+instance-specific config. (An alternative is to use envrionment variables, though some people
+prefer concrete files to nebulous environment variables.) This works even with custom config
+files specified with the `-c` option.
+
 You can also configure SHMIG from command line, or by using
 environmental variables.  The command line settings have higher
-priority than configuration file or environment settings.
+priority than configuration files or environment settings.
 
 Required options are:
 
@@ -158,7 +166,8 @@ $ ln -s ../prod/1485643154-create_table.sql
         └── 1485648520-testdata.sql
 ```
 
-When applying migrations to test, point shmig to the test directory.
+When applying migrations to test, point shmig to the test directory either
+via the command line or using the local config override file.
 
 Since migrations are applied in order of epoch seconds in the file name,
 this works.
