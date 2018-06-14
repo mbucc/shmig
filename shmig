@@ -646,7 +646,7 @@ then
   # any error in configuration file should cause failure
   # to avoid potential database corruption
   trap 'die "Configuration failed"' ERR
-  source "$CONFIG"
+  . "$CONFIG"
   # reset handler
   trap - ERR
 elif [[ $CONFIG_EXPLICITLY_SET -eq 1 ]]
@@ -662,7 +662,7 @@ if [ -e "$LOCAL_CONFIG" ]; then
   # any error in configuration file should cause failure
   # to avoid potential database corruption
   trap 'die "Local configuration failed"' ERR
-  source "$LOCAL_CONFIG"
+  . "$LOCAL_CONFIG"
   # reset handler
   trap - ERR
 fi
