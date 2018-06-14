@@ -646,7 +646,7 @@ then
   # any error in configuration file should cause failure
   # to avoid potential database corruption
   trap 'die "Configuration failed"' ERR
-  source "$CONFIG"
+  . "$CONFIG"
   # reset handler
   trap - ERR
 elif [[ $CONFIG_EXPLICITLY_SET -eq 1 ]]
@@ -655,6 +655,18 @@ then
   # we should bail out with error
   die "Configuration file '$CONFIG' doesn't exist"
 fi
+
+# Include local config, if available (e.g., shmig.local.conf
+LOCAL_CONFIG="${CONFIG%.*}.local.${CONFIG##*.}"
+if [ -e "$LOCAL_CONFIG" ]; then
+  # any error in configuration file should cause failure
+  # to avoid potential database corruption
+  trap 'die "Local configuration failed"' ERR
+  . "$LOCAL_CONFIG"
+  # reset handler
+  trap - ERR
+fi
+
 
 [[ $ASK_PASSWORD -eq 1 ]] && read -s -p "Password: " _PASSWORD
 
