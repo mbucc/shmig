@@ -12,6 +12,7 @@ SCHEMA_TABLE="shmig_version"
 CONFIG_EXPLICITLY_SET="0"
 ASK_PASSWORD="0"
 MIGRATIONS="./migrations"
+RECURSIVE_MIGS="0"
 
 MYSQL=`which mysql`
 PSQL=`which psql`
@@ -119,6 +120,10 @@ Where options are:
           never - do not use colors
           always - always use colors
       default is $COLOR
+
+  -R
+      Recurses through \$MIGRATIONS directory to find all available migrations
+      (default: false)
 
   -V
       shows version information
@@ -388,7 +393,11 @@ EOF
 
 # a wrapper for find that looks for migration files
 find_migrations(){
-  find -L "$MIGRATIONS" -maxdepth 1 -mindepth 1 -type f "$@"
+  maxdepth=
+  if [ "$RECURSIVE_MIGS" == "0" ]; then
+    maxdepth="-maxdepth 1"
+  fi
+  find -L "$MIGRATIONS" $maxdepth -mindepth 1 -type f "$@"
 }
 
 # extract version from migration file name
@@ -617,7 +626,7 @@ down(){
 # parse command line and store variables in _VAR to overwrite config values
 # later
 
-while getopts hc:t:m:d:l:H:p:P:s:a:AVC: arg
+while getopts hc:t:m:d:l:H:p:P:s:a:AVRC: arg
 do
   case $arg in
     h)   usage 0                   ;;
@@ -635,6 +644,7 @@ do
     V)   version                   ;;
     A)   ASK_PASSWORD="1"          ;;
     C)   _COLOR="$OPTARG"          ;;
+    R)   _RECURSIVE_MIGS="1"       ;;
     ?)   exit 1                    ;;
   esac
 done
@@ -682,6 +692,7 @@ fi
 [[ -n $_SCHEMA_TABLE ]] && SCHEMA_TABLE="$_SCHEMA_TABLE"
 [[ -n $_ARGS         ]] && ARGS="$_ARGS"
 [[ -n $_COLOR        ]] && COLOR="$_COLOR"
+[[ -n $_RECURSIVE_MIGS ]] && RECURSIVE_MIGS="$_RECURSIVE_MIGS"
 
 # figure out color policy
 case "$COLOR" in
@@ -726,6 +737,7 @@ fi
 [[ -z $TYPE       ]] && die "${BOLD}${LYELLOW}database type${CLEAR} ${RED}required${CLEAR}"
 [[ -z $DATABASE   ]] && die "${BOLD}${LYELLOW}database name${CLEAR} ${RED}required${CLEAR}"
 [[ -d $MIGRATIONS ]] || die "${BOLD}${LYELLOW}the migrations directory ($MIGRATIONS)${CLEAR} ${RED}is not a directory${CLEAR}"
+(echo "$RECURSIVE_MIGS" | egrep -q "0|1") || die "${BOLD}${LYELLOW}RECURSIVE_MIGS${CLEAR} ${RED}must be either '0' or '1'${CLEAR}"
 
 [[ $# -eq 0 ]] && die "${BOLD}${LYELLOW}action${CLEAR} ${RED}required${CLEAR}"
 ACTION="$1"

@@ -1,0 +1,252 @@
+#!/bin/bash
+
+set -e
+
+# find shmig, defaulting to local
+if [ -e "$PWD/shmig" ]; then
+    shmig="$PWD/shmig"
+elif [ -e "$PWD/../shmig" ]; then
+    shmig="$PWD/../shmig"
+elif command -v shmig &>/dev/null; then
+    shmig="$(command -v shmig)"
+else
+    >&2 echo "E: Can't find shmig command. Can't proceed."
+    exit 1
+fi
+
+TEST_PROJECT=/tmp/shmig-test
+
+function initTestProject() {
+    rm -Rf $TEST_PROJECT
+    mkdir -p $TEST_PROJECT/test{1,2,3,4}
+    cd $TEST_PROJECT
+}
+
+
+
+
+#########################################################################
+# Configuration File Tests
+#########################################################################
+
+initTestProject
+
+# Create normal config file
+cat << EOF > shmig.conf
+TYPE=sqlite3
+DATABASE=test.sqlite3
+MIGRATIONS=test1
+EOF
+
+# Run shmig and test that it created a migration according to the config file
+if ! "$shmig" create test1 >/dev/null; then
+    >&2 echo "E: shmig failed! Can't proceed with test."
+    exit 2
+fi
+if ! find test1 -name '*test1.sql' &>/dev/null; then
+    >&2 echo "E: shmig didn't create the expected migration. Test can't proceed."
+    exit 3
+fi
+
+
+# Now create a local config file and test again
+echo "MIGRATIONS=test2" > shmig.local.conf
+if ! "$shmig" create test2 >/dev/null; then
+    >&2 echo "E: shmig failed! Can't proceed with test."
+    exit 4
+fi
+if ! find test2 -name '*test2.sql' &>/dev/null; then
+    echo "FAIL: shmig didn't see the local config file."
+    exit 100
+else
+    echo "PASS: shmig used local default config file shmig.local.conf"
+fi
+
+
+# Now let's try a custom config file
+
+# Create custom config file
+cat << EOF > shmig-custom.conf
+TYPE=sqlite3
+DATABASE=test.sqlite3
+MIGRATIONS=test3
+EOF
+
+# Run shmig and test that it created a migration according to the config file
+if ! "$shmig" -c shmig-custom.conf create test3 >/dev/null; then
+    >&2 echo "E: shmig failed! Can't proceed with test."
+    exit 5
+fi
+if ! find test3 -name '*test3.sql' &>/dev/null; then
+    >&2 echo "E: shmig didn't create the expected migration. Test can't proceed."
+    exit 6
+fi
+
+
+# Now create a local config file and test again
+echo "MIGRATIONS=test4" > shmig-custom.local.conf
+if ! "$shmig" -c shmig-custom.conf create test4 >/dev/null; then
+    >&2 echo "E: shmig failed! Can't proceed with test."
+    exit 7
+fi
+if ! find test4 -name '*test4.sql' &>/dev/null; then
+    echo "FAIL: shmig didn't see the local custom config file."
+    exit 101
+else
+    echo "PASS: shmig used local custom config file shmig-custom.local.conf"
+fi
+
+
+# Clean up after config tests
+rm $TEST_PROJECT/*.conf
+
+
+
+
+
+
+
+##################################################################
+# Recursive Migrations Test
+##################################################################
+
+function initRecursiveMigrationsTest() {
+    initTestProject
+    rmdir test*
+    mkdir -p migs/{schema,dev,prod}
+    ln -s ../schema migs/dev/
+    ln -s ../schema migs/prod/
+}
+
+initRecursiveMigrationsTest
+
+
+# Add a schema migration and a data migration
+# NOTE: Normally these would be in reverse order (schema, THEN data), but to make testing simpler, we're
+# switching them here.
+
+if ! "$shmig" -t sqlite3 -d test.sqlite3 -m migs/dev create data1 >/dev/null; then
+    >&2 echo "E: Can't create migration. Dying."
+    exit 8
+fi
+sleep 1
+if ! "$shmig" -t sqlite3 -d test.sqlite3 -m migs/schema create schema1 >/dev/null; then
+    >&2 echo "E: Can't create migration. Dying."
+    exit 9
+fi
+
+# Migrate up. Should run one migration
+
+output="$("$shmig" -t sqlite3 -d test.sqlite3 -m migs/dev up 2>&1)"
+if [ "$?" -gt 0 ]; then
+    >&2 echo "E: Can't run 'data' migration. Dying."
+    exit 10
+fi
+
+if echo "$output" | grep -q schema1; then
+    echo "FAIL: shmig should only have run 'data1' migration, but also ran 'schema1':"$'\n'$'\n'"$output."
+    exit 102
+fi
+
+if ! echo "$output" | grep -q "data1"; then
+    echo "FAIL: shmig should have run the 'data1' migration."
+    exit 103
+else
+    echo "PASS: shmig runs migrations non-recursively by default"
+fi
+
+# Now run migrations with recursion enabled
+
+output="$("$shmig" -t sqlite3 -d test.sqlite3 -m migs/dev -R up 2>&1)"
+if [ "$?" -gt 0 ]; then
+    >&2 echo "E: Can't run 'schema' migration. Dying."
+    exit 11
+fi
+
+if ! [ "$(echo "$output" | wc -l)" -eq 1 ]; then
+    echo "FAIL: shmig should only have run one migration, but instead ran $(echo "$ouput" | wc -l)."
+    exit 104
+fi
+
+if ! echo "$output" | grep -q "schema1"; then
+    echo "FAIL: shmig should have run the 'schema1' migration, but didn't"
+    exit 103
+else
+    echo "PASS: shmig ran migrations recursively when asked to do so"
+fi
+
+
+# Start over to test with config file
+
+initRecursiveMigrationsTest
+
+cat << EOF > shmig.conf
+TYPE=sqlite3
+DATABASE=test.sqlite3
+MIGRATIONS=migs/dev
+EOF
+
+# Add a schema migration and a data migration
+# NOTE: Normally these would be in reverse order (schema, THEN data), but to make testing simpler, we're
+# switching them here.
+
+if ! "$shmig" create data1 >/dev/null; then
+    >&2 echo "E: Can't create migration. Dying."
+    exit 8
+fi
+sleep 1
+if ! "$shmig" -m migs/schema create schema1 >/dev/null; then
+    >&2 echo "E: Can't create migration. Dying."
+    exit 9
+fi
+
+# Migrate up. Should run one migration
+
+output="$("$shmig" up 2>&1)"
+if [ "$?" -gt 0 ]; then
+    >&2 echo "E: Can't run 'data' migration. Dying."
+    exit 10
+fi
+
+if echo "$output" | grep -q schema1; then
+    echo "FAIL: shmig should only have run 'data1' migration, but also ran 'schema1':"$'\n'$'\n'"$output."
+    exit 102
+fi
+
+if ! echo "$output" | grep -q "data1"; then
+    echo "FAIL: shmig should have run the 'data1' migration."
+    exit 103
+else
+    echo "PASS: shmig runs migrations non-recursively by default with no cli args"
+fi
+
+# Now run migrations with recursion enabled
+
+echo "RECURSIVE_MIGS=1" >> shmig.conf
+
+output="$("$shmig" up 2>&1)"
+if [ "$?" -gt 0 ]; then
+    >&2 echo "E: Can't run 'schema' migration. Dying."
+    exit 11
+fi
+
+if ! [ "$(echo "$output" | wc -l)" -eq 1 ]; then
+    echo "FAIL: shmig should only have run one migration, but instead ran $(echo "$ouput" | wc -l)."
+    exit 104
+fi
+
+if ! echo "$output" | grep -q "schema1"; then
+    echo "FAIL: shmig should have run the 'schema1' migration, but didn't"
+    exit 103
+else
+    echo "PASS: shmig ran migrations recursively when specified via config file"
+fi
+
+
+
+
+
+
+# Clean up
+rm -Rf $TEST_PROJECT
+
