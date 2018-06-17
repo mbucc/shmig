@@ -136,41 +136,38 @@ One nice feature of Liquibase is contexts, which are used to
 implement different behavior based on environment; for example,
 in a development environment you can insert test data.
 
-`shmig` can support this with symbolic links.  For example, say
-your production migrations are in `prod` and test data in `test`:
+`shmig` can support this with symbolic links and the `-R`
+(`RECURSIVE_MIGS=1`) option.  For example, say your schema migrations
+are in `schema` and you've got two environments, `production` and `test`.
+You can easily apply the schema migrations in both environments by
+simply symlinking the `schema` directory into both environment directories
+and then enabling recursive migrations like so:
 
 ```
 .
 └── migrations
     ├── prod
+    │   ├── 1485643220-production_data_update.sql
+    │   └── schema > ../schema
+    ├── schema
     │   └── 1485643154-create_table.sql
     └── test
-        └── 1485648520-testdata.sql
+        ├── 1485643320-testdata.sql
+        └── schema > ../schema
 ```
 
-To create a test environment context, link the prod SQL in test directory:
+When applying migrations to test, enable recursive migrations and point
+shmig to the test directory either via the command line or using the config
+file like so:
 
 ```
-$ cd migrations/test/
-$ ln -s ../prod/1485643154-create_table.sql
+shmig -R -m migrations/test up
 ```
 
-
-```
-.
-└── migrations
-    ├── prod
-    │   └── 1485643154-create_table.sql
-    └── test
-        ├── 1485643154-create_table.sql -> ../prod/1485643154-create_table.sql
-        └── 1485648520-testdata.sql
-```
-
-When applying migrations to test, point shmig to the test directory either
-via the command line or using the local config override file.
-
-Since migrations are applied in order of epoch seconds in the file name,
-this works.
+> NOTE: Since migrations are applied in order of epoch seconds in the file name,
+you must be sure to create schema migrations before creating other environment-
+specific migrations that depend on them. Migrations files will be sorted by
+filename regardless of their directory structures.
 
 
 Current state

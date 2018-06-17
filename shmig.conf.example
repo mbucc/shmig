@@ -28,6 +28,7 @@
 # PASSWORD="secret" - password to connect with
 # PORT="N" - database port number
 # ARGS="..." - additional arguments passed to CLI client
+# RECURSIVE_MIGS=1 - whether or not to recurse through subdirectories of $MIGRATIONS (default 0)
 #
 # Actually you can do here pretty much anything
 # because this file is directly included into shmig.
@@ -42,3 +43,4 @@ HOST="localhost"
 DATABASE="db"
 LOGIN="user"
 PASSWORD="password"
+RECURSIVE_MIGS=1
