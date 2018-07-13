@@ -680,7 +680,7 @@ fi
 [[ -n $_PASSWORD     ]] && PASSWORD="$_PASSWORD"
 [[ -n $_PORT         ]] && PORT="$_PORT"
 [[ -n $_SCHEMA_TABLE ]] && SCHEMA_TABLE="$_SCHEMA_TABLE"
-[[ -n $_ARGS         ]] && ARGS="$_ARGS"
+[[ -n $_ARGS         ]] && ARGS="$ARGS $_ARGS"
 [[ -n $_COLOR        ]] && COLOR="$_COLOR"
 
 # figure out color policy
