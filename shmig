@@ -583,8 +583,8 @@ migrate(){
     if [[ -n $stopver ]]
     then
       case "$me" in
-          up) (( version > stopver )) && break ;;
-        down) (( version < stopver )) && break ;;
+          up) [[ "$version" > "$stopver" ]] && break ;;
+        down) [[ ! "$version" > "$stopver" ]] && break ;;
       esac
     fi
 

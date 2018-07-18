@@ -4,5 +4,6 @@ rollback
 pending
 migrate
 down till=1485648520
+down till=1485643154
 status
 pending
