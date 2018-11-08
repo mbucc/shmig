@@ -3,7 +3,6 @@
 set -e
 
 function setup_env() {
-    setup_deb_env $@
     builddir="pkg-build"
 }
 
@@ -18,10 +17,14 @@ function place_files() {
 
 function build_package() {
     local pkgtype="$1"
-    shift
+    local targdir="$2"
+    local builddir="$3"
 
     if [ "$pkgtype" == "deb" ]; then
-        build_deb_package $@
+        if ! build_deb_package "$targdir" "$builddir"; then
+            >&2 echo "E: Couldn't build $pkgtype package. Cleaning up and skipping."
+            rm -Rf "$targdir"
+        fi
     else
         >&2 echo
         >&2 echo "E: Don't know how to build packages of type '$pkgtype'"
