@@ -198,26 +198,14 @@ docker run -e PASSWORD=root -e HOST=mariadb -v $(pwd)/migrations:/sql --link mar
 OS Packaging
 ------------
 
-Currently, a Debian package is available for shmig at https://packages.kaelshipman.me. You may either download it and install it directly, or add the indicated apt repo (see instructions on website).
+Currently, a Debian package is available for shmig at https://packages.kaelshipman.me. You may either download it and install it directly, or add the indicated apt repo (see instructions on website) and install it via `apt-get`.
 
-Building OS packages for shmig requires the `ks-std-libs` package from the same apt repo (again, you can download it directly [here](https://packages.kaelshipman.me/public/deb/pool/main/k/ks-std-libs/ks-std-libs_0.8.5_all.deb)). Once that's installed, you may build packages by simply running `./pkg-build.sh` from the source of this repo.
+Building OS packages for shmig requires the `peekaygee` and `peekaygee-builder-deb` packages from the same apt repo. You can download these directly, but you'll also have to download their (few) dependencies, so it's easier to just add the repository and install via `apt-get`. Once those packages are installed, you may build packages by simply running `peekaygee build` from the source of this repo.
 
-At the time of this writing, only a Debian package is available. *Contributions for other systems would be greatly welcomed, and can be submitted via PR to this repo.* At some point, package building will be rolled into `peekaygee` (on github at https://github.com/kael-shipman/peekaygee), but until that happens, documentation for the process is as follows:
-
-### Package Types
-
-Package types (deb, rpm, arch, etc.) are managed by simply adding the corresponding name as a directory under `pkg-src`. For example, to add an rpm package, you would do `mkdir pkg-src/rpm`.
-
-Files that are common to all packages go into a special directory called `pkg-src/generic`. Any files under that directory are automatically copied straight into the corresponding locations in all final packages.
-
-Under the package type directory (including generic), you must then create one or more actual package directories. In this case, I would create `pkg-src/rpm/shmig`, since the package I'm building is called `shmig`, but at some point I might also create a special package just for shmig documentation by creating `pkg-src/*/shmig-docs`.
-
-Once the package directory is created, you'll generally create the control files under it. For debian, this is everything in the DEBIAN directory at package root.
-
-The final step is adding the new package type to `pkg-build.sh`. Opening that file, you'll see three functions, `setup_env`, `place_files` and `build_package`. These three functions are called by the `build` function from the `ks-std-libs/libpkgbuilder.sh` library, which you can read about [here](https://github.com/kael-shipman/ks-std-libs/blob/master/src/usr/lib/ks-std-libs/libpkgbuilder.sh). In short, you won't need to mess with `setup_env`, and you'll need to just add package-specific stuff actions to `place_files` and `build_package` to achieve the end result of a final OS package build into `builddir`.
+At the time of this writing, only a Debian package is available. *Contributions for other systems would be greatly welcomed, and can be submitted via PR to this repo.* For information about how to provide buildable package templates, see `peekaygee` documentation on github at https://github.com/kael-shipman/peekaygee.
 
 > 
-> NOTE: You should bump the version in the `VERSION` file on every change. This is the source of the OS packages' version information.
+> NOTE: You should bump the version in the `pkg-src/VERSION` file on every change. This is the source of the OS packages' version information.
 > 
 
 Todo
