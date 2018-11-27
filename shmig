@@ -542,6 +542,7 @@ migrate(){
   local sname="$5"
   local src="$6" # source function. should accept number of migrations to display and print their file names
   local version_change_sql="$7" # command that who gets version and should print sql to execute (used to add/remove version in $SCHEMA_TABLE)
+  local error_tmpfile="${TMPDIR:-/tmp}/shmig-migration-error.${RANDOM}.tmp"
   shift 7
 
   local steps=""
@@ -594,9 +595,14 @@ migrate(){
 
       migration_section "$fname" "$since" "$till" || die "\n  ${LRED}migration in '${LYELLOW}$fname${LRED}' contains no section ${CYAN}$sname${CLEAR}"
       "$version_change_sql" "$version"
-
-      echo -e "${BOLD}${LGREEN}done${CLEAR}" >&2
-    ) | "${TYPE}_cli"
+    ) | if "${TYPE}_cli" &> ${error_tmpfile}; then
+          echo -e "${BOLD}${LGREEN}done${CLEAR}" >&2
+        else
+          echo -e "${BOLD}${LGREEN}error${CLEAR}" >&2
+          cat ${error_tmpfile}
+          rm ${error_tmpfile}
+          exit 1
+        fi
 
     [[ ${PIPESTATUS[0]} -eq 0 && ${PIPESTATUS[1]} -eq 0 ]] || exit 1
   done < <("$src" $steps)
