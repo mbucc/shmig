@@ -542,7 +542,6 @@ migrate(){
   local sname="$5"
   local src="$6" # source function. should accept number of migrations to display and print their file names
   local version_change_sql="$7" # command that who gets version and should print sql to execute (used to add/remove version in $SCHEMA_TABLE)
-  local error_tmpfile="${TMPDIR:-/tmp}/shmig-migration-error.${RANDOM}.tmp"
   shift 7
 
   local steps=""
@@ -589,6 +588,7 @@ migrate(){
       esac
     fi
 
+    local error_tmpfile="${TMPDIR:-/tmp}/shmig-migration-error.${RANDOM}.tmp"
     # pipe section from migration and version change SQL into CLI client of specified type
     (
       echo -en "$ME: $message '${LMAGENTA}${name}${CLEAR}'\t(${LBLUE}$version${LBLUE}${CLEAR})... " >&2
