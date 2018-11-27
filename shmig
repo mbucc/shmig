@@ -598,7 +598,7 @@ migrate(){
     ) | if "${TYPE}_cli" &> ${error_tmpfile}; then
           echo -e "${BOLD}${LGREEN}done${CLEAR}" >&2
         else
-          echo -e "${BOLD}${LGREEN}error${CLEAR}" >&2
+          echo -e "${BOLD}${LRED}error${CLEAR}" >&2
           cat ${error_tmpfile}
           rm ${error_tmpfile}
           exit 1
