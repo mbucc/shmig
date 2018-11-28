@@ -423,7 +423,7 @@ migration_section(){
   local fname="$1"
   local since="^-- $(sed_quote "$2")\$"
   local till="^-- $(sed_quote "$3")\$"
-  local tmpfile="${TMPDIR:-/tmp}/shmig-migration-section.$$.${RANDOM}.sql"
+  local tmpfile="${TMPDIR:-/tmp/}shmig-migration-section.$$.${RANDOM}.sql"
   local result="0"
 
   sed -n -e '/'"$since"'/,/'"$till"'/p' "$fname"\
@@ -588,7 +588,7 @@ migrate(){
       esac
     fi
 
-    local error_tmpfile="${TMPDIR:-/tmp}/shmig-migration-error.${RANDOM}.tmp"
+    local error_tmpfile="${TMPDIR:-/tmp/}shmig-migration-error.${RANDOM}.tmp"
     # pipe section from migration and version change SQL into CLI client of specified type
     (
       echo -en "$ME: $message '${LMAGENTA}${name}${CLEAR}'\t(${LBLUE}$version${LBLUE}${CLEAR})... " >&2
