@@ -200,9 +200,13 @@ OS Packaging
 
 Currently, a Debian package is available for shmig at https://packages.kaelshipman.me. You may either download it and install it directly, or add the indicated apt repo (see instructions on website).
 
-Building OS packages for shmig requires the `ks-std-libs` package from the same apt repo (again, you can download it directly [here](https://packages.kaelshipman.me/public/deb/pool/main/k/ks-std-libs/ks-std-libs_0.8.5_all.deb)). Once that's installed, you may build packages by simply running `./pkg-build.sh` from the source of this repo.
+Building `.deb` packages for shmig requires the `ks-std-libs` package from the same apt repo (again, you can download it directly [here](https://packages.kaelshipman.me/public/deb/pool/main/k/ks-std-libs/ks-std-libs_0.8.5_all.deb)). Once that's installed, you may build packages by simply running `./pkg-build.sh` from the source of this repo.
 
-At the time of this writing, only a Debian package is available. *Contributions for other systems would be greatly welcomed, and can be submitted via PR to this repo.* At some point, package building will be rolled into `peekaygee` (on github at https://github.com/kael-shipman/peekaygee), but until that happens, documentation for the process is as follows:
+[NixOS](https://nixos.org/) supports `shmig` on Linux and Darwin at the moment, the package can be
+installed into the user's profile by running `nix-env -iA nixos.shmig` since
+[18.03](https://nixos.org/nixos/manual/release-notes.html#sec-release-18.03).
+
+*Contributions for other systems would be greatly welcomed, and can be submitted via PR to this repo.* At some point, package building will be rolled into `peekaygee` (on github at https://github.com/kael-shipman/peekaygee), but until that happens, documentation for the process is as follows:
 
 ### Package Types
 
