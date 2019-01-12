@@ -164,7 +164,7 @@ __generic_checker(){
 
   [[ -x $exe ]] || die "${BOLD}${LYELLOW}${exe##*[/\\]}${CLEAR} ($exe) is ${RED}not available. Ensure that the ${TYPE} client is installed${CLEAR}"
 
-  TMPF=$(((RANDOM<<15)|RANDOM)).$$.out
+  TMPF=/tmp/$(((RANDOM<<15)|RANDOM)).$$.out
   rm -f $TMPF
   "${TYPE}_cli" "$show" > $TMPF
   if [ $? -ne 0 ]
