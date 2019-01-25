@@ -1,0 +1,17 @@
+language: shell
+dist: trusty
+
+
+os:
+  - linux
+
+
+services:
+  - docker
+
+
+script:
+  - cd ..
+  - git clone https://github.com/mbucc/shmig_test.git && cp shmig/shmig shmig_test && cd shmig_test
+  - CI=1 ./test_runner.sh
+
