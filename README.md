@@ -1,7 +1,6 @@
 SHMIG
 =====
 
-
 A database migration tool written in BASH consisting of just one file - [`shmig`](https://github.com/naquad/shmig/blob/master/shmig).
 
 
