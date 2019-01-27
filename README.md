@@ -1,7 +1,8 @@
 SHMIG [![Build Status](https://travis-ci.org/mbucc/shmig.svg?branch=travis-ci)](https://travis-ci.org/mbucc/shmig)
 =====
 
-A database migration tool written in BASH consisting of just one file - [`shmig`](https://github.com/naquad/shmig/blob/master/shmig).
+A database migration tool written in BASH consisting of just one
+file - [`shmig`](https://github.com/naquad/shmig/blob/master/shmig).
 
 
 
@@ -42,7 +43,8 @@ Quick Start
   $
 ```
 
-Edit [`sqlite3_up_text()`](https://github.com/naquad/shmig/blob/master/shmig#L361-L368) and [`sqlite3_down_text()`](https://github.com/naquad/shmig/blob/master/shmig#L370-L376)  in script if you don't like the default SQL template.
+Edit the function `sqlite3_up_text()` and `sqlite3_down_text()` in
+shmig if you don't like the default SQL template.
 
 
 Tests
