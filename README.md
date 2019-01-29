@@ -54,6 +54,8 @@ Tests
 | Shell | DB  | Result |
 | ----- | --- | ------ |
 | /bin/bash | sqlite3 | ![](https://raw.githubusercontent.com/mbucc/shmig_test/master/badges/alpine-3.8-bash-sqlite3.png) |
+| /bin/bash | mysql:5.7 | ![](https://raw.githubusercontent.com/mbucc/shmig_test/master/badges/alpine-3.8-bash-mysql-5.7.png) |
+| /bin/bash | postgres:9.6 | ![](https://raw.githubusercontent.com/mbucc/shmig_test/master/badges/alpine-3.8-bash-postgres-9.6.png) |
 
 More details at https://github.com/mbucc/shmig_test.
 
