@@ -423,7 +423,7 @@ migration_section(){
   local fname="$1"
   local since="^-- $(sed_quote "$2")\$"
   local till="^-- $(sed_quote "$3")\$"
-  local tmpfile="${TMPDIR:-/tmp}/shmig-migration-section.$$.${RANDOM}.sql"
+  local tmpfile="${TMPDIR:-/tmp/}shmig-migration-section.$$.${RANDOM}.sql"
   local result="0"
 
   sed -n -e '/'"$since"'/,/'"$till"'/p' "$fname"\
@@ -588,15 +588,21 @@ migrate(){
       esac
     fi
 
+    local error_tmpfile="${TMPDIR:-/tmp/}shmig-migration-error.${RANDOM}.tmp"
     # pipe section from migration and version change SQL into CLI client of specified type
     (
       echo -en "$ME: $message '${LMAGENTA}${name}${CLEAR}'\t(${LBLUE}$version${LBLUE}${CLEAR})... " >&2
 
       migration_section "$fname" "$since" "$till" || die "\n  ${LRED}migration in '${LYELLOW}$fname${LRED}' contains no section ${CYAN}$sname${CLEAR}"
       "$version_change_sql" "$version"
-
-      echo -e "${BOLD}${LGREEN}done${CLEAR}" >&2
-    ) | "${TYPE}_cli"
+    ) | if "${TYPE}_cli" &> ${error_tmpfile}; then
+          echo -e "${BOLD}${LGREEN}done${CLEAR}" >&2
+        else
+          echo -e "${BOLD}${LRED}error${CLEAR}" >&2
+          cat ${error_tmpfile}
+          rm ${error_tmpfile}
+          exit 1
+        fi
 
     [[ ${PIPESTATUS[0]} -eq 0 && ${PIPESTATUS[1]} -eq 0 ]] || exit 1
   done < <("$src" $steps)
