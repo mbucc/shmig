@@ -1,4 +1,4 @@
-SHMIG [![Build Status](https://travis-ci.org/mbucc/shmig.svg?branch=travis-ci)](https://travis-ci.org/mbucc/shmig)
+SHMIG [![Build Status](https://travis-ci.org/mbucc/shmig.svg?branch=master)](https://travis-ci.org/mbucc/shmig)
 =====
 
 
