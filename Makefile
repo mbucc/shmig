@@ -7,6 +7,10 @@ install: ${PREFIX}/bin/shmig
 ${PREFIX}/bin/shmig: shmig
 	cp $? $@
 
-.PHONY: test
+.PHONY: test lint
+
 test:
 	(cd test ; make)
+
+lint:
+	shellcheck shmig
