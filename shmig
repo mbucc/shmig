@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-# shellcheck disable=SC2155
 
 # SHMIG. Database migration tool in BASH.
 # Copyright 2013 naquad <naquad@gmail.com>
@@ -205,18 +204,22 @@ __generic_status(){
 
 ##### MySQL
 mysql_cli(){
-  local args=(-N -A -B "$ARGS" "$DATABASE")
+  local args="-N -A -B $ARGS $DATABASE"
 
-  [[ -n $LOGIN    ]] && args+=("-u" "$LOGIN")
-  [[ -n $HOST     ]] && args+=("-h" "$HOST")
-  [[ -n $PORT     ]] && args+=("-P" "$PORT")
+  [[ -n $LOGIN    ]] && args="-u $LOGIN    $args"
+  [[ -n $HOST     ]] && args="-h $HOST     $args"
+  [[ -n $PORT     ]] && args="-P $PORT     $args"
   [[ -n $PASSWORD ]] && export MYSQL_PWD="$PASSWORD"
 
   if [[ $# -ne 0 ]]
   then
-    "$MYSQL" "${args[@]}" "$ARGS" "$DATABASE" <<< "$@"
+    # shellcheck disable=2086
+    # Quoting $args breaks script.
+    "$MYSQL" $args <<< "$@"
   else
-    "$MYSQL" "${args[@]}" "$ARGS" "$DATABASE"
+    # shellcheck disable=2086
+    # Quoting $args breaks script.
+    "$MYSQL" $args
   fi
 }
 
@@ -265,18 +268,22 @@ EOF
 
 postgresql_cli(){
   export PGOPTIONS="-c client_min_messages=WARNING"
-  local args=(-q -X -v "VERBOSITY=terse" -v "ON_ERROR_STOP=1" -A -t -w -d "$DATABASE")
+  local args="-q -X -v VERBOSITY=terse -v ON_ERROR_STOP=1 -A -t -w -d $DATABASE $ARGS"
 
-  [[ -n $LOGIN    ]] && args+=(-U "$LOGIN")
-  [[ -n $HOST     ]] && args+=(-h "$HOST")
-  [[ -n $PORT     ]] && args+=(-p "$PORT")
+  [[ -n $LOGIN    ]] && args="-U $LOGIN    $args"
+  [[ -n $HOST     ]] && args="-h $HOST     $args"
+  [[ -n $PORT     ]] && args="-p $PORT     $args"
   [[ -n $PASSWORD ]] && export PGPASSWORD="$PASSWORD"
 
   if [[ $# -ne 0 ]]
   then
-    "$PSQL" "${args[@]}" "$ARGS" -c "$*"
+    # shellcheck disable=2086
+    # Quoting $args breaks script.
+    "$PSQL" $args -c "$*"
   else
-    "$PSQL" "${args[@]}" "$ARGS"
+    # shellcheck disable=2086
+    # Quoting $args breaks script.
+    "$PSQL" $args
   fi
 }
 
@@ -325,13 +332,17 @@ EOF
 ##### SQLite3
 
 sqlite3_cli(){
-  local args=(-bail -batch "$ARGS" "$DATABASE")
+  local args="-bail -batch $ARGS $DATABASE"
 
   if [[ $# -ne 0 ]]
   then
-    "$SQLITE3" "${args[@]}" <<< "$@"
+    # shellcheck disable=2086
+    # Quoting $args break script.
+    "$SQLITE3" $args <<< "$@"
   else
-    "$SQLITE3" "${args[@]}"
+    # shellcheck disable=2086
+    # Quoting $args break script.
+    "$SQLITE3" $args
   fi
 }
 
@@ -414,8 +425,11 @@ sed_quote(){
 # markers. returns false if section is empty or missing
 migration_section(){
   local fname="$1"
-  local since="^-- $(sed_quote "$2")\$"
-  local till="^-- $(sed_quote "$3")\$"
+  local x
+  x="$(sed_quote "$2")"
+  local since="^-- $x\$"
+  x="$(sed_quote "$3")"
+  local till="^-- $x\$"
   local tmpfile="${TMPDIR:-/tmp/}shmig-migration-section.$$.${RANDOM}.sql"
   local result="0"
 
@@ -446,7 +460,11 @@ create(){
     | grep -q "\-$name\.sql" \
     && die "${LRED}migration '${LYELLOW}$name${LRED}' already exists${CLEAR}"
 
-  local fname="$MIGRATIONS/$(date +%s)-$(echo "$name" | tr \  _).sql"
+  local x
+  local y
+  x=$(date +%s)
+  y="$(echo "$name" | tr \  _)"
+  local fname="$MIGRATIONS/$x-$y.sql"
 
   cat > "$fname" << EOF
 -- Migration: $name
@@ -474,9 +492,9 @@ EOF
 
 # prints N pending migrations sorted by version in ascending order
 # if N is not given then all printed
- # shellcheck disable=SC2120
 pending_migrations(){
-  local last=$("${TYPE}_previous_versions" 1)
+  local 
+  last=$("${TYPE}_previous_versions" 1)
   last="${last:-0}"
 
   find_migrations | sort -t- -k1nr | awk -v "limit=${1:--1}" -v "last=$last" -F/ \
@@ -497,7 +515,8 @@ previous_migrations(){
 
   while read -r version
   do
-    local migration=$(find_migrations -name "$version-*.sql")
+    local migration
+    migration=$(find_migrations -name "$version-*.sql")
     [[ -z $migration ]] && die "${LRED}migration version ${LYELLOW}$version ${LRED}can't be found${CLEAR}"
     echo "$migration"
   done < <("${TYPE}_previous_versions" "$1")
@@ -511,7 +530,6 @@ pending(){
   [[ $# -ne 0 ]] && die "${LRED}pending takes no arguments${CLEAR}"
 
   local fname=""
-  # shellcheck disable=SC2119
   pending_migrations | while read -r fname
   do
     echo "${fname##*[/\\]}"
@@ -572,8 +590,10 @@ migrate(){
   local fname=""
   while read -r fname
   do
-    local version=$(migration_version "$fname")
-    local name=$(migration_name "$fname")
+    local version
+    version=$(migration_version "$fname")
+    local name
+    name=$(migration_name "$fname")
 
     # if until is given and we're hitting it then break
     if [[ -n $stopver ]]
