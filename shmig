@@ -525,7 +525,7 @@ pending(){
   [[ $# -ne 0 ]] && die "${LRED}pending takes no arguments${CLEAR}"
 
   local fname=""
-  pending_migrations | while read -r fname
+  pending_migrations "$@" | while read -r fname
   do
     echo "${fname##*[/\\]}"
   done
