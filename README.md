@@ -1,9 +1,19 @@
 SHMIG [![Build Status](https://travis-ci.org/mbucc/shmig.svg?branch=master)](https://travis-ci.org/mbucc/shmig)
 =====
 
-
 A database migration tool written in BASH consisting of just one
 file - [`shmig`](https://github.com/naquad/shmig/blob/master/shmig).
+
+Automated Tests
+-----
+
+| Shell | DB  | Result |
+| ----- | --- | ------ |
+| /bin/bash | sqlite3 | ![](https://raw.githubusercontent.com/mbucc/shmig_test/master/badges/alpine-3.8-bash-sqlite3.png) |
+| /bin/bash | mysql:5.7 | ![](https://raw.githubusercontent.com/mbucc/shmig_test/master/badges/alpine-3.8-bash-mysql-5.7.png) |
+| /bin/bash | postgres:9.6 | ![](https://raw.githubusercontent.com/mbucc/shmig_test/master/badges/alpine-3.8-bash-postgres-9.6.png) |
+
+See https://github.com/mbucc/shmig_test.
 
 
 
@@ -46,18 +56,6 @@ Quick Start
 
 Edit the function `sqlite3_up_text()` and `sqlite3_down_text()` in
 shmig if you don't like the default SQL template.
-
-
-Tests
------
-
-| Shell | DB  | Result |
-| ----- | --- | ------ |
-| /bin/bash | sqlite3 | ![](https://raw.githubusercontent.com/mbucc/shmig_test/master/badges/alpine-3.8-bash-sqlite3.png) |
-| /bin/bash | mysql:5.7 | ![](https://raw.githubusercontent.com/mbucc/shmig_test/master/badges/alpine-3.8-bash-mysql-5.7.png) |
-| /bin/bash | postgres:9.6 | ![](https://raw.githubusercontent.com/mbucc/shmig_test/master/badges/alpine-3.8-bash-postgres-9.6.png) |
-
-More details at https://github.com/mbucc/shmig_test.
 
 
 Why?
