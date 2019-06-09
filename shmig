@@ -4,7 +4,11 @@
 # Copyright 2013 naquad <naquad@gmail.com>
 # Copyright 2014 mbucciarelli <mkbucc@gmail.com>
 
+# shellcheck disable=SC2155
+# See issue #61.
+
 # default values for variables
+
 
 ME="${0##*[/\\]}"
 CONFIG="./shmig.conf"
@@ -425,11 +429,8 @@ sed_quote(){
 # markers. returns false if section is empty or missing
 migration_section(){
   local fname="$1"
-  local x
-  x="$(sed_quote "$2")"
-  local since="^-- $x\$"
-  x="$(sed_quote "$3")"
-  local till="^-- $x\$"
+  local since="^-- $(sed_quote "$2")\$"
+  local till="^-- $(sed_quote "$3")\$"
   local tmpfile="${TMPDIR:-/tmp/}shmig-migration-section.$$.${RANDOM}.sql"
   local result="0"
 
@@ -460,11 +461,7 @@ create(){
     | grep -q "\-$name\.sql" \
     && die "${LRED}migration '${LYELLOW}$name${LRED}' already exists${CLEAR}"
 
-  local x
-  local y
-  x=$(date +%s)
-  y="$(echo "$name" | tr \  _)"
-  local fname="$MIGRATIONS/$x-$y.sql"
+  local fname="$MIGRATIONS/$(date +%s)-$(echo "$name" | tr \  _).sql"
 
   cat > "$fname" << EOF
 -- Migration: $name
@@ -493,8 +490,7 @@ EOF
 # prints N pending migrations sorted by version in ascending order
 # if N is not given then all printed
 pending_migrations(){
-  local 
-  last=$("${TYPE}_previous_versions" 1)
+  local last=$("${TYPE}_previous_versions" 1)
   last="${last:-0}"
 
   find_migrations | sort -t- -k1nr | awk -v "limit=${1:--1}" -v "last=$last" -F/ \
@@ -515,8 +511,7 @@ previous_migrations(){
 
   while read -r version
   do
-    local migration
-    migration=$(find_migrations -name "$version-*.sql")
+    local migration=$(find_migrations -name "$version-*.sql")
     [[ -z $migration ]] && die "${LRED}migration version ${LYELLOW}$version ${LRED}can't be found${CLEAR}"
     echo "$migration"
   done < <("${TYPE}_previous_versions" "$1")
@@ -590,10 +585,8 @@ migrate(){
   local fname=""
   while read -r fname
   do
-    local version
-    version=$(migration_version "$fname")
-    local name
-    name=$(migration_name "$fname")
+    local version=$(migration_version "$fname")
+    local name=$(migration_name "$fname")
 
     # if until is given and we're hitting it then break
     if [[ -n $stopver ]]
