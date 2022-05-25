@@ -245,6 +245,11 @@ Shmig can be used and configured with env vars
 docker run -e PASSWORD=root -e HOST=mariadb -v $(pwd)/migrations:/sql --link mariadb:mariadb mkbucc/shmig:latest -t mysql -d db-name up
 ```
 
+This will attempt 3 retries of the command before exiting. This can 
+be useful in a docker-compose set up where the SHMIG container `depends_on`
+another DB service within the docker-compose configuration.
+ 
+
 OS Packaging
 ------------
 
