@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 
 export > /shmig.conf
-
 max_retries=3
 retry=0
 wait=5
@@ -12,7 +11,7 @@ do
 
     if [ $? -eq 0 ]
     then
-        retry=$max_retries
+        let retry=$max_retries+1
     else
         let retry++
         let wait=$wait*$retry 
