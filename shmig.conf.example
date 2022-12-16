@@ -19,6 +19,7 @@
 # COLOR="{auto|always|never}" - color output policy. default is auto
 #
 # SCHEMA_TABLE="string" - valid table name to use for tracking current
+#                         default is shmig_version
 #                         schema version
 #
 # TYPE="{sqlite3|postgresql|mysql}" - type of database. required
