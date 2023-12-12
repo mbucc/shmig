@@ -31,12 +31,15 @@ Quick Start
   -- Created at: 2016-08-06 09:42:44
   -- ====  UP  ====
 
+  PRAGMA foreign_keys = ON;
+
   BEGIN;
-  	PRAGMA foreign_keys = ON;
 
   COMMIT;
 
   -- ==== DOWN ====
+
+  PRAGMA foreign_keys = ON;
 
   BEGIN;
 
