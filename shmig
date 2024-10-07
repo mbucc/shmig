@@ -509,12 +509,12 @@ pending_migrations(){
 previous_migrations(){
   local version=""
 
-  while read -r version
+  "${TYPE}_previous_versions" "$1" | while read -r version
   do
     local migration=$(find_migrations -name "$version-*.sql")
     [[ -z $migration ]] && die "${LRED}migration version ${LYELLOW}$version ${LRED}can't be found${CLEAR}"
     echo "$migration"
-  done < <("${TYPE}_previous_versions" "$1")
+  done
 
   # shellcheck disable=SC2181
   [[ $? -ne 0 ]] && exit 1
@@ -583,7 +583,7 @@ migrate(){
   is_numeric "$stopver" || die "${LYELLOW}TILL${LRED} should be numeric${CLEAR}"
 
   local fname=""
-  while read -r fname
+  "$src" "$steps" | while read -r fname
   do
     local version=$(migration_version "$fname")
     local name=$(migration_name "$fname")
@@ -614,7 +614,7 @@ migrate(){
         fi
 
     [[ ${PIPESTATUS[0]} -eq 0 && ${PIPESTATUS[1]} -eq 0 ]] || exit 1
-  done < <("$src" "$steps")
+  done
 }
 
 # a wrapper for migrate that applies migrations
