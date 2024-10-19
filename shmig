@@ -336,7 +336,7 @@ EOF
 ##### SQLite3
 
 sqlite3_cli(){
-  local args="-bail -batch $ARGS $DATABASE"
+  local args="-bail -batch -list -noheader $ARGS $DATABASE"
 
   if [[ $# -ne 0 ]]
   then
