@@ -20,6 +20,7 @@ MIGRATIONS="./migrations"
 MYSQL=$(command -v mysql)
 PSQL=$(command -v psql)
 SQLITE3=$(command -v sqlite3)
+BQ=$(command -v bq)
 
 UP_MARK="====  UP  ===="
 DOWN_MARK="==== DOWN ===="
@@ -394,6 +395,60 @@ EOF
 }
 
 ##### SQLite3 end
+
+##### BigQuery start
+
+bq_cli(){
+  # database is dataset
+  local args="--format csv --dataset_id $DATABASE query --nouse_legacy_sql"
+
+  if [[ $# -ne 0 ]]
+  then
+    # shellcheck disable=2086
+    # Quoting $args breaks script.
+    "$BQ" $args <<< "$@"
+  else
+    # shellcheck disable=2086
+    # Quoting $args breaks script.
+    "$BQ" $args
+  fi
+}
+
+bq_check(){
+  __generic_checker "$BQ" \
+    "select table_name from ${DATABASE}.INFORMATION_SCHEMA.TABLES;" \
+    "create table \`$SCHEMA_TABLE\`(version int not null primary key not enforced, migrated_at timestamp default current_timestamp not null);"
+}
+
+bq_previous_versions(){
+  local fields="lpad(cast(version as string), 10, '0') as version"
+  __generic_previous_versions '`' "$1" "$fields"
+}
+
+bq_bump_version_sql(){
+  __generic_bump_version_sql '`' "$1"
+}
+
+bq_drop_version_sql(){
+  __generic_drop_version_sql '`' "$1"
+}
+
+bq_status(){
+  __generic_status '`' '*'
+}
+
+bq_up_text() {
+cat >> "$1" << EOF
+EOF
+}
+
+
+bq_down_text() {
+cat >> "$1" << EOF
+EOF
+}
+
+##### BigQuery end
 
 ### DB-specific functions end
 
