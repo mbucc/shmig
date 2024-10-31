@@ -400,7 +400,7 @@ EOF
 
 bq_cli(){
   # database is dataset
-  local args="--format csv --dataset_id $DATABASE query --nouse_legacy_sql"
+  local args="--format csv --dataset_id $DATABASE $ARGS query --nouse_legacy_sql"
 
   if [[ $# -ne 0 ]]
   then
