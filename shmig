@@ -406,11 +406,11 @@ bq_cli(){
   then
     # shellcheck disable=2086
     # Quoting $args breaks script.
-    "$BQ" $args <<< "$@"
+    "$BQ" $args <<< "$@" | tail -n +2
   else
     # shellcheck disable=2086
     # Quoting $args breaks script.
-    "$BQ" $args
+    "$BQ" $args | tail -n +2
   fi
 }
 
